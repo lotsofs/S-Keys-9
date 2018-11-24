@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace Explore {
-	class Characters {
-		public static Dictionary<int, string> keys = new Dictionary<int, string> {
+namespace InputF8 {
+	public static class Keys {
+		public static Dictionary<int, string> keyNames = new Dictionary<int, string> {
 			{ 0x1, "LMB" },
 			{ 0x2, "RMB" }, 
 			//3
@@ -19,9 +19,9 @@ namespace Explore {
 			//E
 			//F
 
-			{ 0x10, "Shift" }, 
-			{ 0x11, "Ctrl" },
-			{ 0x12, "Alt" }, 
+			//{ 0x10, "Shift" },
+			//{ 0x11, "Ctrl" },
+			//{ 0x12, "Alt" }, 
 			{ 0x13, "Pause" }, 
 			{ 0x14, "CapsLk" },
 			//15

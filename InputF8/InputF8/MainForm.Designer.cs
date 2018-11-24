@@ -1,5 +1,5 @@
 ﻿namespace InputF8 {
-	partial class Form1 {
+	partial class MainForm {
 		/// <summary>
 		/// Required designer variable.
 		/// </summary>
@@ -23,10 +23,20 @@
 		/// the contents of this method with the code editor.
 		/// </summary>
 		private void InitializeComponent() {
-			this.components = new System.ComponentModel.Container();
+			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
+			this.SuspendLayout();
+			// 
+			// MainForm
+			// 
+			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(800, 450);
-			this.Text = "Form1";
+			this.BackColor = System.Drawing.Color.Black;
+			this.ClientSize = new System.Drawing.Size(371, 74);
+			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+			this.Name = "MainForm";
+			this.Text = "Input F8";
+			this.ResumeLayout(false);
+
 		}
 
 		#endregion
