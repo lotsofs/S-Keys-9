@@ -11,30 +11,30 @@ namespace InputF8 {
 			{ 0x6, "XMB2" },
 			//7
 			{ 0x8, "Backspace" }, 
-			{ 0x9, "Tab" }, 
+			{ 0x9, "Tab" },
 			//A
 			//B
-			//C
+			{ 0xC, "Clear" },
 			{ 0xD, "Enter" },
 			//E
 			//F
 
-			//{ 0x10, "Shift" },
-			//{ 0x11, "Ctrl" },
-			//{ 0x12, "Alt" }, 
+			{ 0x10, "Shift" },
+			{ 0x11, "Ctrl" },
+			{ 0x12, "Alt" }, 
 			{ 0x13, "Pause" }, 
 			{ 0x14, "CapsLk" },
-			//15
+			{ 0x15, "Kana/HangulMode" },
 			//16
-			//17
-			//18
-			//19
+			{ 0x17, "JunjaMode" },
+			{ 0x18, "FinalMode" },
+			{ 0x19, "Hanja/KanjiMode" },
 			//1A
-			{ 0x1B, "Esc" }, 
-			//1C
-			//1D
-			//1E
-			//1F
+			{ 0x1B, "Esc" },
+			{ 0x1C, "Convert" },
+			{ 0x1D, "NonConvert" },
+			{ 0x1E, "Accept" },
+			{ 0x1F, "ModeChange" }, 
 
 			{ 0x20, "Space" }, 
 			{ 0x21, "PgUp" }, 
@@ -45,13 +45,13 @@ namespace InputF8 {
 			{ 0x26, "Up" }, 
 			{ 0x27, "Right" },
 			{ 0x28, "Down" },
-			//29
-			//2A
-			//2B
+			{ 0x29, "Select" },
+			{ 0x2A, "Print" },
+			{ 0x2B, "Execute" },
 			{ 0x2C, "PrtScr" }, 
 			{ 0x2D, "Ins" }, 
-			{ 0x2E, "Del" }, 
-			//2F
+			{ 0x2E, "Del" },
+			{ 0x2F, "Help" },
 
 			{ 0x30, "0" },
 			{ 0x31, "1" }, 
@@ -100,9 +100,9 @@ namespace InputF8 {
 			{ 0x5A, "Z" }, 
 			{ 0x5B, "LWin" }, 
 			{ 0x5C, "RWin" },
-			{ 0X5D, "Apps" }, 
+			{ 0x5D, "Apps" },
 			//5E
-			//5F
+			{ 0x5F, "Sleep" },
 
 			{ 0x60, "Num0" }, 
 			{ 0x61, "Num1" }, 
@@ -115,8 +115,8 @@ namespace InputF8 {
 			{ 0x68, "Num8" }, 
 			{ 0x69, "Num9" },
 			{ 0x6A, "Num*" }, 
-			{ 0x6B, "Num+" }, 
-			//6C
+			{ 0x6B, "Num+" },
+			{ 0x6C, "Separator" },
 			{ 0x6D, "Num-" }, 
 			{ 0x6E, "Num." },
 			{ 0x6F, "Num/" }, 
@@ -239,6 +239,40 @@ namespace InputF8 {
 			{ 0xDD, "]" },
 			{ 0xDE, "'" },
 			//DF
+
+			//E0
+			//E1
+			{ 0xE2, "OEM102" },
+			//E3
+			//E4
+			{ 0xE5, "ProcessKey" },
+			//E6
+			{ 0xE7, "Packet" },
+			//E8
+			//E9
+			//EA
+			//EB
+			//EC
+			//ED
+			//EE
+			//EF
+
+			//F0
+			//F1
+			//F2
+			//F3
+			//F4
+			//F5
+			{ 0xF6, "Attn" },
+			{ 0xF7, "CrSel" },
+			{ 0xF8, "ExSel" },
+			{ 0xF9, "EraseEOF" },
+			{ 0xFA, "Play" },
+			{ 0xFB, "Zoom" },
+			//FC
+			{ 0xFD, "PA1" },
+			{ 0xFE, "Clear" },
+			//FF
 		};
 	}
 }
