@@ -14,10 +14,10 @@ namespace InputF8 {
 		/// </summary>
 		internal static void SetDirectories() {
 			DirectoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"S\SKeys9\"); //@"S\SKeys9\"); //@"S\inputf8\");
-			CountPath = Path.Combine(DirectoryPath, "count.txt");
-			DurationPath = Path.Combine(DirectoryPath, "duration.txt");
-			MousePath = Path.Combine(DirectoryPath, "mousemap.txt");
-			InteractionPath = Path.Combine(DirectoryPath, "mouseinteractionmap.txt");
+			CountPath = Path.Combine(DirectoryPath, "count.log");
+			DurationPath = Path.Combine(DirectoryPath, "duration.log");
+			MousePath = Path.Combine(DirectoryPath, "mousemap.log");
+			InteractionPath = Path.Combine(DirectoryPath, "mouseinteractionmap.log");
 
 			if (!Directory.Exists(DirectoryPath)) {
 				Directory.CreateDirectory(DirectoryPath);

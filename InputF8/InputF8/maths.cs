@@ -28,5 +28,54 @@ namespace InputF8 {
 			a = a << 16;
 			return a + b;
 		}
+
+		/// <summary>
+		/// adds (math) a value to an existing dictionary value, or adds (enumerable) a new key if it doesn't exist
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="dic"></param>
+		/// <param name="key"></param>
+		/// <param name="value"></param>
+		public static void AddValueToDictionaryValue(Dictionary<int, uint> dic, int key, uint value) {
+			if (dic.ContainsKey(key)) {
+				dic[key] += value;
+			}
+			else {
+				dic.Add(key, value);
+			}
+		}
+
+		/// <summary>
+		/// adds (math) a value to an existing dictionary value, or adds (enumerable) a new key if it doesn't exist
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="dic"></param>
+		/// <param name="key"></param>
+		/// <param name="value"></param>
+		public static void AddValueToDictionaryValue(Dictionary<int, TimeSpan> dic, int key, TimeSpan value) {
+			if (dic.ContainsKey(key)) {
+				dic[key] += value;
+			}
+			else {
+				dic.Add(key, value);
+			}
+		}
+
+		/// <summary>
+		/// adds (math) a value to an existing dictionary value, or adds (enumerable) a new key if it doesn't exist
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="dic"></param>
+		/// <param name="key"></param>
+		/// <param name="value"></param>
+		public static void AddValueToDictionaryValue(Dictionary<int, int> dic, int key, int value) {
+			if (dic.ContainsKey(key)) {
+				dic[key] += value;
+			}
+			else {
+				dic.Add(key, value);
+			}
+		}
 	}
+
 }

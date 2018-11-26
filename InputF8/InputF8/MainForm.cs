@@ -12,7 +12,7 @@ namespace InputF8 {
 
 		public MainForm() {
 			InitializeComponent();
-			//AppDomain.CurrentDomain.ProcessExit += new EventHandler(ExitProgram);
+			Application.ApplicationExit += new EventHandler(ExitProgram);
 
 			Paths.SetDirectories();
 			AddHooks();
@@ -76,7 +76,11 @@ namespace InputF8 {
 		/// Prepares program for exit, saving stuff, closing hooks etc
 		/// </summary>
 		void ExitProgramPrep() {
-		//void ExitProgram(object sender, EventArgs e) {
+			_hooks.DisableHooks();
+			_input.SaveFiles();
+		}
+
+		void ExitProgram(object sender, EventArgs e) {
 			_hooks.DisableHooks();
 			_input.SaveFiles();
 		}
