@@ -98,8 +98,8 @@ namespace InputF8 {
 		internal void OnMouseUp(object sender, MouseEventArgs e) {
 			TimeSpan time = Stopwatches.Stop((int)e.Button);
 			MathS.AddValueToDictionaryValue(_inputsDuration, (int)e.Button, time);
-			int coordsInt = MathS.CombineInt(e.X, e.Y);
-			MathS.AddValueToDictionaryValue(_mouseInteractions, coordsInt, 1);
+			//int coordsInt = MathS.CombineInt(e.X, e.Y);
+			//MathS.AddValueToDictionaryValue(_mouseInteractions, coordsInt, 1);
 			OnKeysChanged?.Invoke(this, new ChangeEventArgs(_currentlyPressed));
 		}
 
