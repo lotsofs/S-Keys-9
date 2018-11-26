@@ -162,12 +162,12 @@ namespace InputF8 {
 			//94
 			//95
 			//96
-			//97
-			//98
-			//99
-			//9A
-			//9B
-			//9C
+			{ 0x97, "ScrUp" }, // Hijacked
+			{ 0x98, "ScrDn" }, // Hijacked
+			{ 0x99, "ScrLeft" }, // Hijacked
+			{ 0x9A, "ScrRight" }, // Hijacked
+			{ 0x9B, "MouseMovement" }, // Hijacked
+			{ 0x9C, "MouseMovOverflow" }, // Hijacked
 			//9D
 			//9E
 			//9F
@@ -222,7 +222,7 @@ namespace InputF8 {
 			//CD
 			//CE
 			//CF
-			
+
 			//D0
 			//D1
 			//D2

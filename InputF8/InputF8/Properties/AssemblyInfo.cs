@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("InputF8")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("S Keys 9")]
+[assembly: AssemblyDescription("Input Tracker")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("InputF8")]
+[assembly: AssemblyCompany("S.")]
+[assembly: AssemblyProduct("S Keys 9")]
 [assembly: AssemblyCopyright("Copyright ©  2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

@@ -23,8 +23,16 @@
 		/// the contents of this method with the code editor.
 		/// </summary>
 		private void InitializeComponent() {
+			this.components = new System.ComponentModel.Container();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
+			this.NotifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
 			this.SuspendLayout();
+			// 
+			// NotifyIcon
+			// 
+			this.NotifyIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("NotifyIcon.Icon")));
+			this.NotifyIcon.Text = "S Keys 9";
+			this.NotifyIcon.DoubleClick += new System.EventHandler(this.NotifyIcon_DoubleClick);
 			// 
 			// MainForm
 			// 
@@ -34,12 +42,15 @@
 			this.ClientSize = new System.Drawing.Size(371, 74);
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
 			this.Name = "MainForm";
-			this.Text = "Input F8";
+			this.Text = "S Keys 9";
+			this.Resize += new System.EventHandler(this.MainForm_Resize);
 			this.ResumeLayout(false);
 
 		}
 
 		#endregion
+
+		private System.Windows.Forms.NotifyIcon NotifyIcon;
 	}
 }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Input;
@@ -24,6 +25,8 @@ namespace InputF8 {
 		private const int WM_XBUTTONUP = 0x20C;
 		private const int WM_MOUSEHWHEEL = 0x20E;
 		private const int WM_MOUSEMOVE = 0x200;
+
+		private List<int> _currentlyPressed = new List<int>();
 
 		#region DLLImports
 
@@ -65,8 +68,10 @@ namespace InputF8 {
 
 		public event EventHandler<KeyEventArgs> OnKeyDown;
 		public event EventHandler<KeyEventArgs> OnKeyUp;
-		public event EventHandler<MouseAEventArgs> OnMouseDown;
-		public event EventHandler<MouseAEventArgs> OnMouseUp;
+		public event EventHandler<MouseEventArgs> OnMouseDown;
+		public event EventHandler<MouseEventArgs> OnMouseUp;
+		public event EventHandler<ScrollEventArgs> OnMouseScroll;
+		public event EventHandler<MoveEventArgs> OnMouseMove;
 
 		private LowLevelKeyboardProc _kbProc;
 		private IntPtr _kbHookID = IntPtr.Zero;
@@ -93,6 +98,7 @@ namespace InputF8 {
 		/// </summary>
 		public void DisableHooks() {
 			UnhookWindowsHookEx(_kbHookID);
+			UnhookWindowsHookEx(_mHookID);
 		}
 
 		private IntPtr SetKbHook(LowLevelKeyboardProc proc) {
@@ -108,6 +114,8 @@ namespace InputF8 {
 				return SetWindowsHookEx(WH_MOUSE_LL, proc, GetModuleHandle(curModule.ModuleName), 0);
 			}
 		}
+
+		#region hook callbacks
 
 		/// <summary>
 		/// keyhook callback happens.
@@ -126,11 +134,17 @@ namespace InputF8 {
 			switch ((int)wParam) {
 				case WM_KEYDOWN:
 				case WM_SYSKEYDOWN:
-					OnKeyDown?.Invoke(this, new KeyEventArgs(KeyInterop.KeyFromVirtualKey(vkCode)));
+					if (!_currentlyPressed.Contains(vkCode)) {
+						_currentlyPressed.Add(vkCode);
+						OnKeyDown?.Invoke(this, new KeyEventArgs(vkCode));
+					}
 					break;
 				case WM_KEYUP:
 				case WM_SYSKEYUP:
-					OnKeyUp?.Invoke(this, new KeyEventArgs(KeyInterop.KeyFromVirtualKey(vkCode)));
+					if (_currentlyPressed.Contains(vkCode)) {
+						_currentlyPressed.Remove(vkCode);
+					}
+					OnKeyUp?.Invoke(this, new KeyEventArgs(vkCode));
 					break;
 			}
 
@@ -145,66 +159,134 @@ namespace InputF8 {
 		/// <param name="lParam"></param>
 		/// <returns></returns>
 		private IntPtr MHookCallback(int nCode, IntPtr wParam, IntPtr lParam) {
-			Debug.WriteLine(lParam);
 
-			Debug.WriteLine(string.Format("{0}   {1}   {2}   {3}", (short)lParam.ToInt32(), lParam.ToInt32() >> 16, (int)wParam, (int)lParam));
 			if (nCode < 0) {
 				return CallNextHookEx(_kbHookID, nCode, wParam, lParam);
 			}
 
-
 			switch ((int)wParam) {
 				case WM_LBUTTONDOWN:
-					OnMouseDown?.Invoke(this, new MouseAEventArgs(MouseAEventArgs.Buttons.LMB));
+					if (!_currentlyPressed.Contains((int)MouseEventArgs.Buttons.LMB)) {
+						_currentlyPressed.Add((int)MouseEventArgs.Buttons.LMB);
+						OnMouseDown?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.LMB));
+					}
 					break;
 				case WM_RBUTTONDOWN:
-					OnMouseDown?.Invoke(this, new MouseAEventArgs(MouseAEventArgs.Buttons.RMB));
+					if (!_currentlyPressed.Contains((int)MouseEventArgs.Buttons.RMB)) {
+						_currentlyPressed.Add((int)MouseEventArgs.Buttons.RMB);
+						OnMouseDown?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.RMB));
+					}
 					break;
 				case WM_MBUTTONDOWN:
-					OnMouseDown?.Invoke(this, new MouseAEventArgs(MouseAEventArgs.Buttons.MMB));
+					if (!_currentlyPressed.Contains((int)MouseEventArgs.Buttons.MMB)) {
+						_currentlyPressed.Add((int)MouseEventArgs.Buttons.MMB);
+						OnMouseDown?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.MMB));
+					}
 					break;
 				case WM_XBUTTONDOWN:
-					OnMouseDown?.Invoke(this, new MouseAEventArgs(MouseAEventArgs.Buttons.MMB));
+					MSLLHOOKSTRUCT dHookStruct = (MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MSLLHOOKSTRUCT));
+					switch (((uint)dHookStruct.mouseData >> 16 & (uint)ushort.MaxValue)) {
+						case 1:
+							if (!_currentlyPressed.Contains((int)MouseEventArgs.Buttons.XMB1)) {
+								_currentlyPressed.Add((int)MouseEventArgs.Buttons.XMB1);
+								OnMouseDown?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.XMB1));
+							}
+							break;
+						case 2:
+							if (!_currentlyPressed.Contains((int)MouseEventArgs.Buttons.XMB2)) {
+								_currentlyPressed.Add((int)MouseEventArgs.Buttons.XMB2);
+								OnMouseDown?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.XMB2));
+							}
+							break;
+					}
 					break;
-
 
 				case WM_LBUTTONUP:
-					OnMouseUp?.Invoke(this, new MouseAEventArgs(MouseAEventArgs.Buttons.LMB));
+					if (_currentlyPressed.Contains((int)MouseEventArgs.Buttons.LMB)) {
+						_currentlyPressed.Add((int)MouseEventArgs.Buttons.LMB);
+						OnMouseUp?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.LMB));
+					}
 					break;
 				case WM_RBUTTONUP:
-					OnMouseUp?.Invoke(this, new MouseAEventArgs(MouseAEventArgs.Buttons.RMB));
+					if (_currentlyPressed.Contains((int)MouseEventArgs.Buttons.RMB)) {
+						_currentlyPressed.Add((int)MouseEventArgs.Buttons.RMB);
+						OnMouseUp?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.RMB));
+					}
 					break;
 				case WM_MBUTTONUP:
-					OnMouseUp?.Invoke(this, new MouseAEventArgs(MouseAEventArgs.Buttons.MMB));
+					if (_currentlyPressed.Contains((int)MouseEventArgs.Buttons.MMB)) {
+						_currentlyPressed.Add((int)MouseEventArgs.Buttons.MMB);
+						OnMouseUp?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.MMB));
+					}
 					break;
 				case WM_XBUTTONUP:
-					OnMouseUp?.Invoke(this, new MouseAEventArgs(MouseAEventArgs.Buttons.MMB));
+					MSLLHOOKSTRUCT uHookStruct = (MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MSLLHOOKSTRUCT));
+					switch (((uint)uHookStruct.mouseData >> 16 & (uint)ushort.MaxValue)) {
+						case 1:
+							if (_currentlyPressed.Contains((int)MouseEventArgs.Buttons.XMB1)) {
+								_currentlyPressed.Add((int)MouseEventArgs.Buttons.XMB1);
+								OnMouseUp?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.XMB1));
+							}
+							break;
+						case 2:
+							if (_currentlyPressed.Contains((int)MouseEventArgs.Buttons.XMB2)) {
+								_currentlyPressed.Add((int)MouseEventArgs.Buttons.XMB2);
+								OnMouseUp?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.XMB2));
+							}
+							break;
+					}
 					break;
 
 
 				case WM_MOUSEWHEEL:
-					//IntPtr aa = (IntPtr)0xf0000000;
-					//uint aa32 = (uint)aa.ToInt64();
-
-					Debug.WriteLine((int)(lParam) & 0xFFFF);
-					Debug.WriteLine(((int)(lParam) >> 16) & 0xFFFF);
-					
-					Debug.WriteLine((unchecked((int)(long)wParam)) >> 16 & 0xffff);
-				//	Debug.WriteLine(aa32);
-					
+					MSLLHOOKSTRUCT vHookStruct = (MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MSLLHOOKSTRUCT));
+					if (vHookStruct.mouseData >> 16 > 0) {
+						OnMouseScroll?.Invoke(this, new ScrollEventArgs(ScrollEventArgs.Directions.Up));
+					}
+					else {
+						OnMouseScroll?.Invoke(this, new ScrollEventArgs(ScrollEventArgs.Directions.Down));
+					}
 					break;
 				case WM_MOUSEHWHEEL:
+					MSLLHOOKSTRUCT hHookStruct = (MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MSLLHOOKSTRUCT));
+					if (hHookStruct.mouseData >> 16 > 0) {
+						OnMouseScroll?.Invoke(this, new ScrollEventArgs(ScrollEventArgs.Directions.Right));
+					}
+					else {
+						OnMouseScroll?.Invoke(this, new ScrollEventArgs(ScrollEventArgs.Directions.Left));
+					}
 					break;
 
 
 				case WM_MOUSEMOVE:
-					//Debug.WriteLine(string.Format("{0}   {1}   {2}   {3}", (short)lParam.ToInt32(), lParam.ToInt32() >> 16, wParam, lParam));
+					MSLLHOOKSTRUCT mHookStruct = (MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MSLLHOOKSTRUCT));
+					OnMouseMove?.Invoke(this, new MoveEventArgs(mHookStruct.pt.x, mHookStruct.pt.y));
 					break;
 			}
 
 			return CallNextHookEx(_mHookID, nCode, wParam, lParam);
 		}
+
+		#endregion
+
+		#region mouseLParamsStructs
+		// totally didn't copy this from online without understanding it
+
+		[StructLayout(LayoutKind.Sequential)]
+		private struct POINT {
+			public int x;
+			public int y;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		private struct MSLLHOOKSTRUCT {
+			public POINT pt;
+			public int mouseData;
+			public uint flags;
+			public uint time;
+			public IntPtr dwExtraInfo;
+		}
+
+		#endregion
 	}
-
-
 }
