@@ -86,5 +86,9 @@ namespace InputF8 {
 		}
 
 		#endregion
+
+		private void ToolStripMenuItemSettings_Click(object sender, EventArgs e) {
+
+		}
 	}
 }
