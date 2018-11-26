@@ -9,6 +9,16 @@ namespace InputF8 {
 	class Stopwatches {
 
 		static Dictionary<int, Stopwatch> _inputsStopwatches = new Dictionary<int, Stopwatch>();
+		static Stopwatch _mouseStopwatch = new Stopwatch();
+
+		public static void MouseStart() {
+			_mouseStopwatch.Restart();
+		}
+
+		public static TimeSpan MouseStop() {
+			_mouseStopwatch.Stop();
+			return _mouseStopwatch.Elapsed;
+		}
 
 		/// <summary>
 		/// starts a stopwatch that tracks the duration of a keypress

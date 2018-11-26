@@ -164,38 +164,38 @@ namespace InputF8 {
 				return CallNextHookEx(_kbHookID, nCode, wParam, lParam);
 			}
 
+			MSLLHOOKSTRUCT hookStruct = (MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MSLLHOOKSTRUCT));
 			switch ((int)wParam) {
 				case WM_LBUTTONDOWN:
 					if (!_currentlyPressed.Contains((int)MouseEventArgs.Buttons.LMB)) {
 						_currentlyPressed.Add((int)MouseEventArgs.Buttons.LMB);
-						OnMouseDown?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.LMB));
+						OnMouseDown?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.LMB, hookStruct.pt.x, hookStruct.pt.y));
 					}
 					break;
 				case WM_RBUTTONDOWN:
 					if (!_currentlyPressed.Contains((int)MouseEventArgs.Buttons.RMB)) {
 						_currentlyPressed.Add((int)MouseEventArgs.Buttons.RMB);
-						OnMouseDown?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.RMB));
+						OnMouseDown?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.RMB, hookStruct.pt.x, hookStruct.pt.y));
 					}
 					break;
 				case WM_MBUTTONDOWN:
 					if (!_currentlyPressed.Contains((int)MouseEventArgs.Buttons.MMB)) {
 						_currentlyPressed.Add((int)MouseEventArgs.Buttons.MMB);
-						OnMouseDown?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.MMB));
+						OnMouseDown?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.MMB, hookStruct.pt.x, hookStruct.pt.y));
 					}
 					break;
 				case WM_XBUTTONDOWN:
-					MSLLHOOKSTRUCT dHookStruct = (MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MSLLHOOKSTRUCT));
-					switch (((uint)dHookStruct.mouseData >> 16 & (uint)ushort.MaxValue)) {
+					switch (((uint)hookStruct.mouseData >> 16 & (uint)ushort.MaxValue)) {
 						case 1:
 							if (!_currentlyPressed.Contains((int)MouseEventArgs.Buttons.XMB1)) {
 								_currentlyPressed.Add((int)MouseEventArgs.Buttons.XMB1);
-								OnMouseDown?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.XMB1));
+								OnMouseDown?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.XMB1, hookStruct.pt.x, hookStruct.pt.y));
 							}
 							break;
 						case 2:
 							if (!_currentlyPressed.Contains((int)MouseEventArgs.Buttons.XMB2)) {
 								_currentlyPressed.Add((int)MouseEventArgs.Buttons.XMB2);
-								OnMouseDown?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.XMB2));
+								OnMouseDown?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.XMB2, hookStruct.pt.x, hookStruct.pt.y));
 							}
 							break;
 					}
@@ -203,35 +203,34 @@ namespace InputF8 {
 
 				case WM_LBUTTONUP:
 					if (_currentlyPressed.Contains((int)MouseEventArgs.Buttons.LMB)) {
-						_currentlyPressed.Add((int)MouseEventArgs.Buttons.LMB);
-						OnMouseUp?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.LMB));
+						_currentlyPressed.Remove((int)MouseEventArgs.Buttons.LMB);
+						OnMouseUp?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.LMB, hookStruct.pt.x, hookStruct.pt.y));
 					}
 					break;
 				case WM_RBUTTONUP:
 					if (_currentlyPressed.Contains((int)MouseEventArgs.Buttons.RMB)) {
-						_currentlyPressed.Add((int)MouseEventArgs.Buttons.RMB);
-						OnMouseUp?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.RMB));
+						_currentlyPressed.Remove((int)MouseEventArgs.Buttons.RMB);
+						OnMouseUp?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.RMB, hookStruct.pt.x, hookStruct.pt.y));
 					}
 					break;
 				case WM_MBUTTONUP:
 					if (_currentlyPressed.Contains((int)MouseEventArgs.Buttons.MMB)) {
-						_currentlyPressed.Add((int)MouseEventArgs.Buttons.MMB);
-						OnMouseUp?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.MMB));
+						_currentlyPressed.Remove((int)MouseEventArgs.Buttons.MMB);
+						OnMouseUp?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.MMB, hookStruct.pt.x, hookStruct.pt.y));
 					}
 					break;
 				case WM_XBUTTONUP:
-					MSLLHOOKSTRUCT uHookStruct = (MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MSLLHOOKSTRUCT));
-					switch (((uint)uHookStruct.mouseData >> 16 & (uint)ushort.MaxValue)) {
+					switch (((uint)hookStruct.mouseData >> 16 & (uint)ushort.MaxValue)) {
 						case 1:
 							if (_currentlyPressed.Contains((int)MouseEventArgs.Buttons.XMB1)) {
-								_currentlyPressed.Add((int)MouseEventArgs.Buttons.XMB1);
-								OnMouseUp?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.XMB1));
+								_currentlyPressed.Remove((int)MouseEventArgs.Buttons.XMB1);
+								OnMouseUp?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.XMB1, hookStruct.pt.x, hookStruct.pt.y));
 							}
 							break;
 						case 2:
 							if (_currentlyPressed.Contains((int)MouseEventArgs.Buttons.XMB2)) {
-								_currentlyPressed.Add((int)MouseEventArgs.Buttons.XMB2);
-								OnMouseUp?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.XMB2));
+								_currentlyPressed.Remove((int)MouseEventArgs.Buttons.XMB2);
+								OnMouseUp?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.XMB2, hookStruct.pt.x, hookStruct.pt.y));
 							}
 							break;
 					}
@@ -239,8 +238,7 @@ namespace InputF8 {
 
 
 				case WM_MOUSEWHEEL:
-					MSLLHOOKSTRUCT vHookStruct = (MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MSLLHOOKSTRUCT));
-					if (vHookStruct.mouseData >> 16 > 0) {
+					if (hookStruct.mouseData >> 16 > 0) {
 						OnMouseScroll?.Invoke(this, new ScrollEventArgs(ScrollEventArgs.Directions.Up));
 					}
 					else {
@@ -248,8 +246,7 @@ namespace InputF8 {
 					}
 					break;
 				case WM_MOUSEHWHEEL:
-					MSLLHOOKSTRUCT hHookStruct = (MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MSLLHOOKSTRUCT));
-					if (hHookStruct.mouseData >> 16 > 0) {
+					if (hookStruct.mouseData >> 16 > 0) {
 						OnMouseScroll?.Invoke(this, new ScrollEventArgs(ScrollEventArgs.Directions.Right));
 					}
 					else {
@@ -259,8 +256,7 @@ namespace InputF8 {
 
 
 				case WM_MOUSEMOVE:
-					MSLLHOOKSTRUCT mHookStruct = (MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MSLLHOOKSTRUCT));
-					OnMouseMove?.Invoke(this, new MoveEventArgs(mHookStruct.pt.x, mHookStruct.pt.y));
+					OnMouseMove?.Invoke(this, new MoveEventArgs(hookStruct.pt.x, hookStruct.pt.y));
 					break;
 			}
 

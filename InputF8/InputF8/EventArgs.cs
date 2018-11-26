@@ -44,11 +44,11 @@ namespace InputF8 {
 	/// </summary>
 	public class MoveEventArgs : EventArgs {
 		public int X {
-			get; private set;
+			get; protected set;
 		}
 
 		public int Y {
-			get; private set;
+			get; protected set;
 		}
 
 		public MoveEventArgs(int x, int y) {
@@ -70,12 +70,22 @@ namespace InputF8 {
 			XMB2 = 6,
 		}
 
+		public int X {
+			get; protected set;
+		}
+
+		public int Y {
+			get; protected set;
+		}
+
 		public Buttons Button {
 			get; private set;
 		}
 
-		public MouseEventArgs(Buttons button) {
+		public MouseEventArgs(Buttons button, int x, int y) {
 			Button = button;
+			X = x;
+			Y = y;
 		}
 
 	}

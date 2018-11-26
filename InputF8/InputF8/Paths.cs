@@ -6,6 +6,8 @@ namespace InputF8 {
 		internal static string DirectoryPath;
 		internal static string CountPath;
 		internal static string DurationPath;
+		internal static string MousePath;
+		internal static string InteractionPath;
 
 		/// <summary>
 		/// Set directory paths and create them if they don't exist
@@ -14,6 +16,8 @@ namespace InputF8 {
 			DirectoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"S\SKeys9\"); //@"S\SKeys9\"); //@"S\inputf8\");
 			CountPath = Path.Combine(DirectoryPath, "count.txt");
 			DurationPath = Path.Combine(DirectoryPath, "duration.txt");
+			MousePath = Path.Combine(DirectoryPath, "mousemap.txt");
+			InteractionPath = Path.Combine(DirectoryPath, "mouseinteractionmap.txt");
 
 			if (!Directory.Exists(DirectoryPath)) {
 				Directory.CreateDirectory(DirectoryPath);

@@ -13,6 +13,9 @@ namespace InputF8 {
 		Dictionary<int, uint> _inputsCount = new Dictionary<int, uint>();
 		Dictionary<int, TimeSpan> _inputsDuration = new Dictionary<int, TimeSpan>();
 
+		Dictionary<int, TimeSpan> _mousePos = new Dictionary<int, TimeSpan>();
+		Dictionary<int, int> _mouseInteractions = new Dictionary<int, int>();
+
 		int _oldX;
 		int _oldY;
 
@@ -28,6 +31,8 @@ namespace InputF8 {
 			_oldY = Cursor.Position.Y;
 			StartAutosaveTimer();
 		}
+
+
 
 		/// <summary>
 		/// Starts an autosave timer
@@ -49,38 +54,82 @@ namespace InputF8 {
 			SaveFiles();
 		}
 		
+		/// <summary>
+		/// key down
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
 		internal void OnKeyDown(object sender, KeyEventArgs e) {
 			Stopwatches.Start(e.Key);
 			_inputsCount[e.Key] += 1;
 			OnKeysChanged?.Invoke(this, new ChangeEventArgs(_currentlyPressed));
 		}
 
+		/// <summary>
+		/// key up
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
 		internal void OnKeyUp(object sender, KeyEventArgs e) {
 			TimeSpan time = Stopwatches.Stop(e.Key);
-			Debug.WriteLine(time);
 			_inputsDuration[e.Key] += time;
 			OnKeysChanged?.Invoke(this, new ChangeEventArgs(_currentlyPressed));
 		}
 
+		/// <summary>
+		/// mouse down
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
 		internal void OnMouseDown(object sender, MouseEventArgs e) {
 			Stopwatches.Start((int)e.Button);
 			_inputsCount[(int)e.Button] += 1;
 			OnKeysChanged?.Invoke(this, new ChangeEventArgs(_currentlyPressed));
+
+			int coordsInt = MathS.CombineInt(e.X, e.Y);
+			if (_mouseInteractions.ContainsKey(coordsInt)) {
+				_mouseInteractions[coordsInt] += 1;
+			}
+			else {
+				_mouseInteractions.Add(coordsInt, 1);
+			}
 		}
 
+		/// <summary>
+		/// mouse up
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
 		internal void OnMouseUp(object sender, MouseEventArgs e) {
 			TimeSpan time = Stopwatches.Stop((int)e.Button);
 			_inputsDuration[(int)e.Button] += time;
 			OnKeysChanged?.Invoke(this, new ChangeEventArgs(_currentlyPressed));
+
+			int coordsInt = MathS.CombineInt(e.X, e.Y);
+			if (_mouseInteractions.ContainsKey(coordsInt)) {
+				_mouseInteractions[coordsInt] += 1;
+			}
+			else {
+				_mouseInteractions.Add(coordsInt, 1);
+			}
 		}
 
+		/// <summary>
+		/// mouse scroll
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
 		internal void OnMouseScroll(object sender, ScrollEventArgs e) {
 			int dictionaryEntry = (int)e.Direction + 0x97;  // hijacked some unassigned VK codes' slots
 			_inputsCount[dictionaryEntry] += 1;
-			_inputsCount[0x9B] = uint.MaxValue - 10000;
 			OnKeysChanged?.Invoke(this, new ChangeEventArgs(_currentlyPressed));
 		}
 
+		/// <summary>
+		/// mouse move
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
 		internal void OnMouseMove(object sender, MoveEventArgs e) {
 			// TODO: fix hardcoded number below. depends on polling rate of mouse among other things? Or deal with it in some other way.
 			_inputsDuration[0x9B] += TimeSpan.FromTicks(10000); // hijacked an unassigned VK code's slot
@@ -93,9 +142,21 @@ namespace InputF8 {
 				_inputsCount[0x9C] += 1; // hijacked an unassigned VK code's slot
 			}
 
+			int coordsInt = MathS.CombineInt(e.X, e.Y);
+			if (_mousePos.ContainsKey(coordsInt)) {
+				_mousePos[coordsInt] += Stopwatches.MouseStop();
+			}
+			else {
+				_mousePos.Add(coordsInt, Stopwatches.MouseStop());
+			}
+			Stopwatches.MouseStart();
+
 			_oldX = e.X;
 			_oldY = e.Y;
 		}
+
+
+
 
 		internal void OnPressedKeysChanged() {
 			// write text in window
@@ -120,6 +181,16 @@ namespace InputF8 {
 					sw.WriteLine(string.Format("{0:X2} {1}", key, _inputsDuration[key]));
 				}
 			}
+			using (StreamWriter sw = new StreamWriter(Paths.MousePath)) {
+				foreach (int i in _mousePos.Keys) {
+					sw.WriteLine(string.Format("{0:X8} {1:X}", i, _mousePos[i].Ticks));
+				}
+			}
+			using (StreamWriter sw = new StreamWriter(Paths.InteractionPath)) {
+				foreach (int i in _mouseInteractions.Keys) {
+					sw.WriteLine(string.Format("{0:X8} {1:X}", i, _mouseInteractions[i]));
+				}
+			}
 		}
 
 		/// <summary>
@@ -141,7 +212,6 @@ namespace InputF8 {
 				}
 			}
 
-
 			if (File.Exists(Paths.DurationPath)) {
 				IEnumerable<string> durationTexts = File.ReadLines(Paths.DurationPath);
 				foreach (string durationText in durationTexts) {
@@ -155,6 +225,25 @@ namespace InputF8 {
 					_inputsDuration.Add(key, TimeSpan.Zero);
 				}
 			}
+
+			if (File.Exists(Paths.MousePath)) {
+				IEnumerable<string> mouseTexts = File.ReadLines(Paths.MousePath);
+				foreach (string mouseText in mouseTexts) {
+					int coord = int.Parse(mouseText.Substring(0, 8), System.Globalization.NumberStyles.HexNumber);
+					TimeSpan duration = TimeSpan.FromTicks(long.Parse(mouseText.Substring(9), System.Globalization.NumberStyles.HexNumber));
+					_mousePos.Add(coord, duration);
+				}
+			}
+
+			if (File.Exists(Paths.InteractionPath)) {
+				IEnumerable<string> mouseTexts = File.ReadLines(Paths.InteractionPath);
+				foreach (string mouseText in mouseTexts) {
+					int coord = int.Parse(mouseText.Substring(0, 8), System.Globalization.NumberStyles.HexNumber);
+					int count = int.Parse(mouseText.Substring(9), System.Globalization.NumberStyles.HexNumber);
+					_mouseInteractions.Add(coord, count);
+				}
+			}
+
 			SaveFiles();
 		}
 

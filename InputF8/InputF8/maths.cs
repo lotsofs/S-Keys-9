@@ -17,5 +17,16 @@ namespace InputF8 {
 			double distanceP2 = Math.Pow(distanceX, 2) + Math.Pow(distanceY, 2);
 			return Math.Sqrt(distanceP2);
 		}
+
+		/// <summary>
+		/// Combines two ints into one int by bitshifting one
+		/// </summary>
+		/// <param name="a"></param>
+		/// <param name="b"></param>
+		/// <returns></returns>
+		public static int CombineInt(int a, int b) {
+			a = a << 16;
+			return a + b;
+		}
 	}
 }
