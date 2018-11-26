@@ -10,11 +10,9 @@ namespace InputF8 {
 		Hooks _hooks;
 		Input _input;
 
-
 		public MainForm() {
 			InitializeComponent();
-
-			Application.ApplicationExit += ExitProgram;
+			//AppDomain.CurrentDomain.ProcessExit += new EventHandler(ExitProgram);
 
 			Paths.SetDirectories();
 			AddHooks();
@@ -61,9 +59,28 @@ namespace InputF8 {
 
 		#endregion
 
-		void ExitProgram(object sender, EventArgs e) {
+		#region exit procedure
+
+		/// <summary>
+		/// Because apparently adding a listener to applicationexit or processexit or whatever works only if the stars align
+		/// </summary>
+		/// <param name="m"></param>
+		protected override void WndProc(ref Message m) {
+			if (m.Msg == 0x11) {	// WM_QUERYENDSESSION
+				ExitProgramPrep();
+			}
+			base.WndProc(ref m);
+		}
+
+		/// <summary>
+		/// Prepares program for exit, saving stuff, closing hooks etc
+		/// </summary>
+		void ExitProgramPrep() {
+		//void ExitProgram(object sender, EventArgs e) {
 			_hooks.DisableHooks();
 			_input.SaveFiles();
 		}
+
+		#endregion
 	}
 }

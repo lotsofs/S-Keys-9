@@ -109,6 +109,7 @@ namespace InputF8 {
 		/// write data to file
 		/// </summary>
 		public void SaveFiles() {
+			// TODO: Make backup saves
 			using (StreamWriter sw = new StreamWriter(Paths.CountPath)) {
 				for (int key = 0; key <= 0xFF; key++) {
 					sw.WriteLine(string.Format("{0:X2} {1}", key, _inputsCount[key]));
@@ -133,6 +134,7 @@ namespace InputF8 {
 					_inputsCount.Add(key, count);
 				}
 			}
+			// TODO: Validate contents, make sure there's 256 entries
 			else {
 				for (int key = 0; key <= 0xFF; key++) {
 					_inputsCount.Add(key, 0);
@@ -154,7 +156,6 @@ namespace InputF8 {
 				}
 			}
 			SaveFiles();
-
 		}
 
 		#endregion
