@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -19,26 +21,32 @@ namespace InputF8 {
 		int _oldX;
 		int _oldY;
 
-		Timer _autosaveTimer;
+		System.Windows.Forms.Timer _autosaveTimer;
 
 		List<string> _currentlyPressed = new List<string>();
 
 		public event EventHandler<ChangeEventArgs> OnKeysChanged;
-		
 
+		ConcurrentQueue<MoveEventArgs> queue = new ConcurrentQueue<MoveEventArgs>();
+		Thread mouseMoveThread;
 
 		internal Input() {
 			LoadFiles();
 			_oldX = Cursor.Position.X;
 			_oldY = Cursor.Position.Y;
 			StartAutosaveTimer();
+
+			mouseMoveThread = new Thread(() => ProcessedQueuedMouseMovements(queue));
+			mouseMoveThread.IsBackground = true;
+			mouseMoveThread.Name = "S Keys 9 BG Thread, where does this show up?";
+			mouseMoveThread.Start();
 		}
 
 		/// <summary>
 		/// Starts an autosave timer
 		/// </summary>
 		void StartAutosaveTimer() {
-			_autosaveTimer = new Timer();
+			_autosaveTimer = new System.Windows.Forms.Timer();
 			_autosaveTimer.Interval = 60000;
 			_autosaveTimer.Tick += new EventHandler(OnAutosaveTimerTick);
 			_autosaveTimer.Start();
@@ -85,7 +93,7 @@ namespace InputF8 {
 		internal void OnMouseDown(object sender, MouseEventArgs e) {
 			Stopwatches.Start((int)e.Button);
 			MathS.AddValueToDictionaryValue(_inputsCount, (int)e.Button, 1);
-			int coordsInt = MathS.CombineInt(e.X, e.Y);
+			int coordsInt = MathS.CombineInt(e.X / 10, e.Y / 10);
 			MathS.AddValueToDictionaryValue(_mouseInteractions, coordsInt, 1);
 			OnKeysChanged?.Invoke(this, new ChangeEventArgs(_currentlyPressed));
 		}
@@ -120,27 +128,8 @@ namespace InputF8 {
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
 		internal void OnMouseMove(object sender, MoveEventArgs e) {
-			// TODO: Deal with number below. depends on polling rate of mouse among other things?
-			MathS.AddValueToDictionaryValue(_inputsDuration, 0x9B, TimeSpan.FromTicks(1)); // hijacked an unassigned VK code's slot
-			double distance = MathS.Distance2DCoords(e.X, e.Y, _oldX, _oldY);
-			uint centiDistance = (uint)(distance * 100); // calculating distance to the centipixel, should be accurate enough
-			MathS.AddValueToDictionaryValue(_inputsCount, 0x9B, centiDistance); // hijacked an unassigned VK code's slot
-
-			// if value has overflowed, add one to a counter that counts overflows
-			if (_inputsCount[0x9B] < centiDistance) {
-				MathS.AddValueToDictionaryValue(_inputsCount, 0x9C, 1); // hijacked an unassigned VK code's slot
-			}
-
-			int coordsInt = MathS.CombineInt(e.X, e.Y);
-			MathS.AddValueToDictionaryValue(_mousePos, coordsInt, Stopwatches.MouseStop());
-			Stopwatches.MouseStart();
-
-			_oldX = e.X;
-			_oldY = e.Y;
+			queue.Enqueue(e);
 		}
-
-
-
 
 		internal void OnPressedKeysChanged() {
 			// write text in window
@@ -148,6 +137,40 @@ namespace InputF8 {
 
 		#endregion
 
+		#region mouse movement stuff
+
+		void ProcessedQueuedMouseMovements(ConcurrentQueue<MoveEventArgs> movementQueue) {
+			while (true) {
+				if (movementQueue.Count == 0) {
+					Thread.Sleep(50);
+					continue;
+				}
+				MoveEventArgs result;
+				if (movementQueue.TryDequeue(out result)) {
+					MouseMoveProcessing(result);
+				}
+			}
+		}
+
+		void MouseMoveProcessing(MoveEventArgs e) {
+			MathS.AddValueToDictionaryValue(_inputsDuration, 0x9B, TimeSpan.FromTicks(1)); // hijacked an unassigned VK code's slot
+			double distance = MathS.Distance2DCoords(e.X, e.Y, _oldX, _oldY);
+			uint centiDistance = (uint)(distance * 100); // calculating distance to the centipixel, should be accurate enough
+			MathS.AddValueToDictionaryValue(_inputsCount, 0x9B, centiDistance); // hijacked an unassigned VK code's slot
+																				// if value has overflowed, add one to a counter that counts overflows
+			if (_inputsCount[0x9B] < centiDistance) {
+				MathS.AddValueToDictionaryValue(_inputsCount, 0x9C, 1); // hijacked an unassigned VK code's slot
+			}
+
+			int coordsInt = MathS.CombineInt(e.X / 100, e.X / 100);
+			MathS.AddValueToDictionaryValue(_mousePos, coordsInt, Stopwatches.MouseStop());
+			Stopwatches.MouseStart();
+
+			_oldX = e.X;
+			_oldY = e.Y;
+		}
+
+		#endregion
 
 
 		#region file IO
@@ -163,6 +186,7 @@ namespace InputF8 {
 		/// write data to file
 		/// </summary>
 		public void SaveFiles() {
+			//await Task.Delay(1);
 			using (StreamWriter sw = new StreamWriter(Paths.CountPath)) {
 				for (int key = 0; key <= 0xFF; key++) {
 					sw.WriteLine(string.Format("{0:X2} {1}", key, _inputsCount[key]));

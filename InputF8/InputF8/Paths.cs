@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace InputF8 {
@@ -13,11 +14,11 @@ namespace InputF8 {
 		/// Set directory paths and create them if they don't exist
 		/// </summary>
 		internal static void SetDirectories() {
-			DirectoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"S\SKeys9\"); //@"S\SKeys9\"); //@"S\inputf8\");
+			DirectoryPath = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName); // Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"S\SKeys9\"); //@"S\SKeys9\"); //@"S\inputf8\");
 			CountPath = Path.Combine(DirectoryPath, "count.log");
-			DurationPath = Path.Combine(DirectoryPath, "duration.log");
-			MousePath = Path.Combine(DirectoryPath, "mousemap.log");
-			InteractionPath = Path.Combine(DirectoryPath, "mouseinteractionmap.log");
+			DurationPath = Path.Combine(DirectoryPath, "duration.log"); 
+			MousePath = Path.Combine(DirectoryPath, "mousemove2map.log");
+			InteractionPath = Path.Combine(DirectoryPath, "mouseinteraction2map.log");
 
 			if (!Directory.Exists(DirectoryPath)) {
 				Directory.CreateDirectory(DirectoryPath);
