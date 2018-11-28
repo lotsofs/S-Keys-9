@@ -27,6 +27,8 @@ namespace InputF8 {
 			_hooks = new Hooks();
 			_input = new Input();
 
+			_input.OnKeysChanged += ChangeText;
+
 			_hooks.OnKeyDown += _input.OnKeyDown;
 			_hooks.OnKeyUp += _input.OnKeyUp;
 			_hooks.OnMouseDown += _input.OnMouseDown;
@@ -40,24 +42,13 @@ namespace InputF8 {
 
 		#endregion
 
-		#region form interactions
-
-		private void MainForm_Resize(object sender, EventArgs e) {
-			if (WindowState == FormWindowState.Minimized) {
-				NotifyIcon.Visible = true;
-				this.Hide();
+		private void ChangeText(object sender, ChangeEventArgs e) {
+			string text = string.Empty;
+			foreach (string s in e.ActiveButtons) {
+				text += (s + " ");
 			}
-			else {
-				NotifyIcon.Visible = false;
-			}
+			DisplayText.Text = text;
 		}
-
-		private void NotifyIcon_DoubleClick(object sender, EventArgs e) {
-			this.Show();
-			WindowState = FormWindowState.Normal;
-		}
-
-		#endregion
 
 		#region exit procedure
 
@@ -83,6 +74,25 @@ namespace InputF8 {
 		void ExitProgram(object sender, EventArgs e) {
 			_hooks.DisableHooks();
 			_input.SaveFiles();
+		}
+
+		#endregion
+
+		#region form interactions
+
+		private void MainForm_Resize(object sender, EventArgs e) {
+			if (WindowState == FormWindowState.Minimized) {
+				NotifyIcon.Visible = true;
+				this.Hide();
+			}
+			else {
+				NotifyIcon.Visible = false;
+			}
+		}
+
+		private void NotifyIcon_DoubleClick(object sender, EventArgs e) {
+			this.Show();
+			WindowState = FormWindowState.Normal;
 		}
 
 		#endregion

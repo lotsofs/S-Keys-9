@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Input;
 
 namespace InputF8 {
 	class Input {
@@ -52,6 +53,23 @@ namespace InputF8 {
 			_autosaveTimer.Start();
 		}
 
+		void SetKeyAsPressed(int key, bool pressed) {
+			string keyName;
+			if (Keys.keyNames.ContainsKey(key)) {
+				keyName = Keys.keyNames[key];
+			}
+			else {
+				keyName = ("?" + key);
+			}
+			if (pressed) {
+				_currentlyPressed.Add(keyName);
+			}
+			else {
+				_currentlyPressed.Remove(keyName);
+			}
+			OnKeysChanged?.Invoke(this, new ChangeEventArgs(_currentlyPressed));
+		}
+
 		#region events
 
 		/// <summary>
@@ -71,7 +89,7 @@ namespace InputF8 {
 		internal void OnKeyDown(object sender, KeyEventArgs e) {
 			Stopwatches.Start(e.Key);
 			MathS.AddValueToDictionaryValue(_inputsCount, e.Key, 1);
-			OnKeysChanged?.Invoke(this, new ChangeEventArgs(_currentlyPressed));
+			SetKeyAsPressed(e.Key, true);
 		}
 
 		/// <summary>
@@ -82,7 +100,7 @@ namespace InputF8 {
 		internal void OnKeyUp(object sender, KeyEventArgs e) {
 			TimeSpan time = Stopwatches.Stop(e.Key);
 			MathS.AddValueToDictionaryValue(_inputsDuration, e.Key, time);
-			OnKeysChanged?.Invoke(this, new ChangeEventArgs(_currentlyPressed));
+			SetKeyAsPressed(e.Key, false);
 		}
 
 		/// <summary>
@@ -95,7 +113,7 @@ namespace InputF8 {
 			MathS.AddValueToDictionaryValue(_inputsCount, (int)e.Button, 1);
 			int coordsInt = MathS.CombineInt(e.X / 10, e.Y / 10);
 			MathS.AddValueToDictionaryValue(_mouseInteractions, coordsInt, 1);
-			OnKeysChanged?.Invoke(this, new ChangeEventArgs(_currentlyPressed));
+			SetKeyAsPressed((int)e.Button, true);
 		}
 
 		/// <summary>
@@ -108,7 +126,7 @@ namespace InputF8 {
 			MathS.AddValueToDictionaryValue(_inputsDuration, (int)e.Button, time);
 			//int coordsInt = MathS.CombineInt(e.X, e.Y);
 			//MathS.AddValueToDictionaryValue(_mouseInteractions, coordsInt, 1);
-			OnKeysChanged?.Invoke(this, new ChangeEventArgs(_currentlyPressed));
+			SetKeyAsPressed((int)e.Button, false);
 		}
 
 		/// <summary>

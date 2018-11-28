@@ -28,6 +28,7 @@
 			this.NotifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
 			this.ToolStripMenuItemSettings = new System.Windows.Forms.ToolStripMenuItem();
 			this.ContextMenuStripMain = new System.Windows.Forms.ContextMenuStrip(this.components);
+			this.DisplayText = new System.Windows.Forms.Label();
 			this.ContextMenuStripMain.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -40,7 +41,7 @@
 			// ToolStripMenuItemSettings
 			// 
 			this.ToolStripMenuItemSettings.Name = "ToolStripMenuItemSettings";
-			this.ToolStripMenuItemSettings.Size = new System.Drawing.Size(180, 22);
+			this.ToolStripMenuItemSettings.Size = new System.Drawing.Size(116, 22);
 			this.ToolStripMenuItemSettings.Text = "Settings";
 			this.ToolStripMenuItemSettings.Click += new System.EventHandler(this.ToolStripMenuItemSettings_Click);
 			// 
@@ -49,15 +50,29 @@
 			this.ContextMenuStripMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.ToolStripMenuItemSettings});
 			this.ContextMenuStripMain.Name = "ContextMenuStripMain";
-			this.ContextMenuStripMain.Size = new System.Drawing.Size(181, 48);
+			this.ContextMenuStripMain.Size = new System.Drawing.Size(117, 26);
+			// 
+			// DisplayText
+			// 
+			this.DisplayText.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.DisplayText.Font = new System.Drawing.Font("Microsoft Sans Serif", 30F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.DisplayText.ForeColor = System.Drawing.Color.White;
+			this.DisplayText.Location = new System.Drawing.Point(0, 0);
+			this.DisplayText.Margin = new System.Windows.Forms.Padding(0);
+			this.DisplayText.Name = "DisplayText";
+			this.DisplayText.Size = new System.Drawing.Size(806, 117);
+			this.DisplayText.TabIndex = 1;
+			this.DisplayText.Text = "W Caps S D\r\nScrUp 29";
 			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.Color.Black;
-			this.ClientSize = new System.Drawing.Size(371, 74);
+			this.ClientSize = new System.Drawing.Size(392, 126);
 			this.ContextMenuStrip = this.ContextMenuStripMain;
+			this.Controls.Add(this.DisplayText);
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
 			this.Name = "MainForm";
 			this.Text = "S Keys 9";
@@ -72,6 +87,7 @@
 		private System.Windows.Forms.NotifyIcon NotifyIcon;
 		private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItemSettings;
 		private System.Windows.Forms.ContextMenuStrip ContextMenuStripMain;
+		private System.Windows.Forms.Label DisplayText;
 	}
 }
 
