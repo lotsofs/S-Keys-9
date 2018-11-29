@@ -168,7 +168,7 @@ namespace InputF8 {
 			{ 0x9A, "ScrRight" }, // Hijacked
 			{ 0x9B, "MouseMovement" }, // Hijacked
 			{ 0x9C, "MouseMovOverflow" }, // Hijacked
-			//9D
+			{ 0x9D, "DbgHookTimeout" }, // Hijacked
 			//9E
 			//9F
 

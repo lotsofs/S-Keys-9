@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using System.Windows.Input;
 
 namespace InputF8 {
@@ -28,41 +29,6 @@ namespace InputF8 {
 
 		private List<int> _currentlyPressed = new List<int>();
 
-		#region DLLImports
-
-		/// <summary>
-		/// enable kb hook
-		/// </summary>
-		[DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-		private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
-
-		/// <summary>
-		/// enable mouse hook
-		/// </summary>
-		[DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-		private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelMouseProc lpfn, IntPtr hMod, uint dwThreadId);
-
-		/// <summary>
-		/// disable kb hook
-		/// </summary>
-		[DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-		[return: MarshalAs(UnmanagedType.Bool)]
-		private static extern bool UnhookWindowsHookEx(IntPtr hhk);
-
-		/// <summary>
-		/// Lets the hook be seen by other applications that have hooks as well.
-		/// </summary>
-		[DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-		private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
-
-		/// <summary>
-		/// 
-		/// </summary>
-		[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-		private static extern IntPtr GetModuleHandle(string lpModuleName);
-
-		#endregion
-
 		public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
 		public delegate IntPtr LowLevelMouseProc(int nCode, IntPtr wParam, IntPtr lParam);
 
@@ -73,17 +39,70 @@ namespace InputF8 {
 		public event EventHandler<ScrollEventArgs> OnMouseScroll;
 		public event EventHandler<MoveEventArgs> OnMouseMove;
 
+		Timer _hookTimeoutTimer;
+
 		private LowLevelKeyboardProc _kbProc;
 		private IntPtr _kbHookID = IntPtr.Zero;
 
 		private LowLevelMouseProc _mProc;
 		private IntPtr _mHookID = IntPtr.Zero;
 
+		#region DLLImports input
+
+		/// <summary>
+		/// enable kb hook
+		/// </summary>
+		[DllImport("user32.dll", SetLastError = true)]
+		private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
+
+		/// <summary>
+		/// enable mouse hook
+		/// </summary>
+		[DllImport("user32.dll", SetLastError = true)]
+		private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelMouseProc lpfn, IntPtr hMod, uint dwThreadId);
+
+		/// <summary>
+		/// disable kb hook
+		/// </summary>
+		[DllImport("user32.dll", SetLastError = true)]
+		[return: MarshalAs(UnmanagedType.Bool)]
+		private static extern bool UnhookWindowsHookEx(IntPtr hhk);
+
+		/// <summary>
+		/// Lets the hook be seen by other applications that have hooks as well.
+		/// </summary>
+		[DllImport("user32.dll", SetLastError = true)]
+		private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+
+		#endregion
+
+		#region DLLImports processes
+
+		/// <summary>
+		/// 
+		/// </summary>
+		[DllImport("kernel32.dll", SetLastError = true)]
+		private static extern IntPtr GetModuleHandle(string lpModuleName);
+
+		//[DllImport("user32.dll")]
+		//public static extern IntPtr GetForegroundWindow();
+
+		//[DllImport("user32.dll", SetLastError = true)]
+		//private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+		#endregion
 
 		public Hooks() {
 			_kbProc = KbHookCallback;
 			_mProc = MHookCallback;
+
+			_hookTimeoutTimer = new Timer();
+			_hookTimeoutTimer.Interval = 5000; // TODO: Not hardcoded
+			_hookTimeoutTimer.Tick += OnHookTimeout;
+			_hookTimeoutTimer.Start();
 		}
+
+		#region enable/disable
 
 		/// <summary>
 		/// Enable the keyboard hook
@@ -112,6 +131,31 @@ namespace InputF8 {
 			using (Process curProcess = Process.GetCurrentProcess())
 			using (ProcessModule curModule = curProcess.MainModule) {
 				return SetWindowsHookEx(WH_MOUSE_LL, proc, GetModuleHandle(curModule.ModuleName), 0);
+			}
+		}
+
+		#endregion
+
+		/// <summary>
+		/// If hook stopped working
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		public void OnHookTimeout(object sender, EventArgs e) {
+			_hookTimeoutTimer.Stop();
+			_hookTimeoutTimer.Start();
+			DisableHooks();
+			EnableHooks();
+		}
+
+		void MarkMouseButtonAsPressed(MSLLHOOKSTRUCT hookStruct, MouseEventArgs.Buttons button, bool pressed) {
+			if (pressed && !_currentlyPressed.Contains((int)button)) {
+				_currentlyPressed.Add((int)button);
+				OnMouseDown?.Invoke(this, new MouseEventArgs(button, hookStruct.pt.x, hookStruct.pt.y));
+			}
+			else if (!pressed && _currentlyPressed.Contains((int)button)) {
+				_currentlyPressed.Remove((int)button);
+				OnMouseUp?.Invoke(this, new MouseEventArgs(button, hookStruct.pt.x, hookStruct.pt.y));
 			}
 		}
 
@@ -147,6 +191,8 @@ namespace InputF8 {
 					OnKeyUp?.Invoke(this, new KeyEventArgs(vkCode));
 					break;
 			}
+			_hookTimeoutTimer.Stop();
+			_hookTimeoutTimer.Start();
 
 			return CallNextHookEx(_kbHookID, nCode, wParam, lParam);
 		}
@@ -167,71 +213,41 @@ namespace InputF8 {
 			MSLLHOOKSTRUCT hookStruct = (MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MSLLHOOKSTRUCT));
 			switch ((int)wParam) {
 				case WM_LBUTTONDOWN:
-					if (!_currentlyPressed.Contains((int)MouseEventArgs.Buttons.LMB)) {
-						_currentlyPressed.Add((int)MouseEventArgs.Buttons.LMB);
-						OnMouseDown?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.LMB, hookStruct.pt.x, hookStruct.pt.y));
-					}
+					MarkMouseButtonAsPressed(hookStruct, MouseEventArgs.Buttons.LMB, true);
 					break;
 				case WM_RBUTTONDOWN:
-					if (!_currentlyPressed.Contains((int)MouseEventArgs.Buttons.RMB)) {
-						_currentlyPressed.Add((int)MouseEventArgs.Buttons.RMB);
-						OnMouseDown?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.RMB, hookStruct.pt.x, hookStruct.pt.y));
-					}
+					MarkMouseButtonAsPressed(hookStruct, MouseEventArgs.Buttons.RMB, true);
 					break;
 				case WM_MBUTTONDOWN:
-					if (!_currentlyPressed.Contains((int)MouseEventArgs.Buttons.MMB)) {
-						_currentlyPressed.Add((int)MouseEventArgs.Buttons.MMB);
-						OnMouseDown?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.MMB, hookStruct.pt.x, hookStruct.pt.y));
-					}
+					MarkMouseButtonAsPressed(hookStruct, MouseEventArgs.Buttons.MMB, true);
 					break;
 				case WM_XBUTTONDOWN:
 					switch (((uint)hookStruct.mouseData >> 16 & (uint)ushort.MaxValue)) {
 						case 1:
-							if (!_currentlyPressed.Contains((int)MouseEventArgs.Buttons.XMB1)) {
-								_currentlyPressed.Add((int)MouseEventArgs.Buttons.XMB1);
-								OnMouseDown?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.XMB1, hookStruct.pt.x, hookStruct.pt.y));
-							}
+							MarkMouseButtonAsPressed(hookStruct, MouseEventArgs.Buttons.XMB1, true);
 							break;
 						case 2:
-							if (!_currentlyPressed.Contains((int)MouseEventArgs.Buttons.XMB2)) {
-								_currentlyPressed.Add((int)MouseEventArgs.Buttons.XMB2);
-								OnMouseDown?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.XMB2, hookStruct.pt.x, hookStruct.pt.y));
-							}
+							MarkMouseButtonAsPressed(hookStruct, MouseEventArgs.Buttons.XMB2, true);
 							break;
 					}
 					break;
 
 				case WM_LBUTTONUP:
-					if (_currentlyPressed.Contains((int)MouseEventArgs.Buttons.LMB)) {
-						_currentlyPressed.Remove((int)MouseEventArgs.Buttons.LMB);
-						OnMouseUp?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.LMB, hookStruct.pt.x, hookStruct.pt.y));
-					}
+					MarkMouseButtonAsPressed(hookStruct, MouseEventArgs.Buttons.LMB, false);
 					break;
 				case WM_RBUTTONUP:
-					if (_currentlyPressed.Contains((int)MouseEventArgs.Buttons.RMB)) {
-						_currentlyPressed.Remove((int)MouseEventArgs.Buttons.RMB);
-						OnMouseUp?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.RMB, hookStruct.pt.x, hookStruct.pt.y));
-					}
+					MarkMouseButtonAsPressed(hookStruct, MouseEventArgs.Buttons.RMB, false);
 					break;
 				case WM_MBUTTONUP:
-					if (_currentlyPressed.Contains((int)MouseEventArgs.Buttons.MMB)) {
-						_currentlyPressed.Remove((int)MouseEventArgs.Buttons.MMB);
-						OnMouseUp?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.MMB, hookStruct.pt.x, hookStruct.pt.y));
-					}
+					MarkMouseButtonAsPressed(hookStruct, MouseEventArgs.Buttons.MMB, false);
 					break;
 				case WM_XBUTTONUP:
 					switch (((uint)hookStruct.mouseData >> 16 & (uint)ushort.MaxValue)) {
 						case 1:
-							if (_currentlyPressed.Contains((int)MouseEventArgs.Buttons.XMB1)) {
-								_currentlyPressed.Remove((int)MouseEventArgs.Buttons.XMB1);
-								OnMouseUp?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.XMB1, hookStruct.pt.x, hookStruct.pt.y));
-							}
+							MarkMouseButtonAsPressed(hookStruct, MouseEventArgs.Buttons.XMB1, false);
 							break;
 						case 2:
-							if (_currentlyPressed.Contains((int)MouseEventArgs.Buttons.XMB2)) {
-								_currentlyPressed.Remove((int)MouseEventArgs.Buttons.XMB2);
-								OnMouseUp?.Invoke(this, new MouseEventArgs(MouseEventArgs.Buttons.XMB2, hookStruct.pt.x, hookStruct.pt.y));
-							}
+							MarkMouseButtonAsPressed(hookStruct, MouseEventArgs.Buttons.XMB2, false);
 							break;
 					}
 					break;

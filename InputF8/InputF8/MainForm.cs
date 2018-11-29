@@ -39,13 +39,22 @@ namespace InputF8 {
 			_hooks.EnableHooks();
 		}
 
-
 		#endregion
 
 		private void ChangeText(object sender, ChangeEventArgs e) {
+			if (ToolStripMenuItemDisableDisplay.Checked) {
+				return;
+			}
+
 			string text = string.Empty;
 			foreach (string s in e.ActiveButtons) {
 				text += (s + " ");
+			}
+			text += "\n";
+			foreach (string s in e.ScrollCount.Keys) {
+				if (e.ScrollCount[s] != 0) {
+					text += (s + " " + e.ScrollCount[s] + " ");
+				}
 			}
 			DisplayText.Text = text;
 		}
@@ -99,6 +108,15 @@ namespace InputF8 {
 
 		private void ToolStripMenuItemSettings_Click(object sender, EventArgs e) {
 
+		}
+
+		private void ToolStripMenuItemDisableDisplay_CheckedChanged(object sender, EventArgs e) {
+			if (ToolStripMenuItemDisableDisplay.Checked) {
+				DisplayText.Text = " { Display disabled } ";
+			}
+			else {
+				DisplayText.Text = "";
+			}
 		}
 	}
 }

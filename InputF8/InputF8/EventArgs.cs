@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -87,7 +88,6 @@ namespace InputF8 {
 			X = x;
 			Y = y;
 		}
-
 	}
 
 	/// <summary>
@@ -98,8 +98,13 @@ namespace InputF8 {
 			get; private set;
 		}
 
-		public ChangeEventArgs(List<string> activeButtons) {
+		public Dictionary<string, int> ScrollCount {
+			get; private set;
+		}
+
+		public ChangeEventArgs(List<string> activeButtons, Dictionary<string, int> scrollCount) {
 			ActiveButtons = activeButtons;
+			ScrollCount = scrollCount;
 		}
 	}
 }
