@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using System.Windows.Input;
@@ -12,14 +14,16 @@ namespace InputF8 {
 
 		public MainForm() {
 			InitializeComponent();
-			Application.ApplicationExit += new EventHandler(ExitProgram);
+			Configuration.SetDirectories();
+			Configuration.LoadSettings();
+			UpdateApperance();
 
-			Paths.SetDirectories();
+			Application.ApplicationExit += new EventHandler(ExitProgram);
 			AddHooks();
 		}
 
 		#region startup
-		
+
 		/// <summary>
 		/// Creates the hooks and adds the listeners
 		/// </summary>
@@ -27,7 +31,7 @@ namespace InputF8 {
 			_hooks = new Hooks();
 			_input = new Input();
 
-			_input.OnKeysChanged += ChangeText;
+			_input.OnKeysChanged += UpdateText;
 
 			_hooks.OnKeyDown += _input.OnKeyDown;
 			_hooks.OnKeyUp += _input.OnKeyUp;
@@ -41,7 +45,22 @@ namespace InputF8 {
 
 		#endregion
 
-		private void ChangeText(object sender, ChangeEventArgs e) {
+		/// <summary>
+		/// updates appearance based on user's selected settigns
+		/// </summary>
+		void UpdateApperance() {
+			Font font = new Font(Configuration.name, Configuration.size, (FontStyle)Configuration.style);
+			DisplayText.Font = font;
+			DisplayText.ForeColor = Color.FromArgb(Configuration.color);
+			this.BackColor = Color.FromArgb(Configuration.backColor);
+		}
+
+		/// <summary>
+		/// updates the text to display currently pressed keys
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void UpdateText(object sender, ChangeEventArgs e) {
 			if (ToolStripMenuItemDisableDisplay.Checked) {
 				return;
 			}
@@ -67,7 +86,7 @@ namespace InputF8 {
 		/// <param name="m"></param>
 		protected override void WndProc(ref Message m) {
 			if (m.Msg == 0x11) {	// WM_QUERYENDSESSION
-				ExitProgramPrep();
+				ExitProgram();
 			}
 			base.WndProc(ref m);
 		}
@@ -75,39 +94,77 @@ namespace InputF8 {
 		/// <summary>
 		/// Prepares program for exit, saving stuff, closing hooks etc
 		/// </summary>
-		void ExitProgramPrep() {
+		void ExitProgram() {
 			_hooks.DisableHooks();
 			_input.SaveFiles();
 		}
 
 		void ExitProgram(object sender, EventArgs e) {
-			_hooks.DisableHooks();
-			_input.SaveFiles();
+			ExitProgram();
 		}
 
 		#endregion
 
-		#region form interactions
+		#region form closing/minimizing/tray behavior
 
-		private void MainForm_Resize(object sender, EventArgs e) {
-			if (WindowState == FormWindowState.Minimized) {
-				NotifyIcon.Visible = true;
+		void MoveToTray(bool tray) {
+			NotifyIcon.Visible = tray;
+			if (tray) {
 				this.Hide();
+				WindowState = FormWindowState.Minimized;
 			}
 			else {
-				NotifyIcon.Visible = false;
+				this.Show();
+				WindowState = FormWindowState.Normal;
 			}
 		}
 
+		/// <summary>
+		/// Minimize
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void MainForm_Resize(object sender, EventArgs e) {
+			if (WindowState == FormWindowState.Minimized && Configuration.MinimizeToTray) {
+				MoveToTray(true);
+			}
+		}
+
+		/// <summary>
+		/// Double click tray icon
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
 		private void NotifyIcon_DoubleClick(object sender, EventArgs e) {
-			this.Show();
-			WindowState = FormWindowState.Normal;
+			MoveToTray(false);
+		}
+
+		/// <summary>
+		/// Close
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void MainForm_FormClosing(object sender, FormClosingEventArgs e) {
+			if (e.CloseReason == CloseReason.UserClosing && Configuration.ExitToTray) {
+				e.Cancel = true;
+				MoveToTray(true);
+			}
 		}
 
 		#endregion
 
-		private void ToolStripMenuItemSettings_Click(object sender, EventArgs e) {
+		#region toolstrip menu items
 
+		private void ToolStripMenuItemSettings_Click(object sender, EventArgs e) {
+			SettingsForm form = new SettingsForm();
+			form.Show();
+			
+			//ColorDialog b = new ColorDialog();
+			//b.ShowDialog();
+			//string a = b.Color.ToArgb().ToString("X");
+			//Debug.WriteLine(a);
+			//int c = int.Parse(a, System.Globalization.NumberStyles.HexNumber);
+			this.BackColor = System.Drawing.Color.FromArgb(Configuration.color);
 		}
 
 		private void ToolStripMenuItemDisableDisplay_CheckedChanged(object sender, EventArgs e) {
@@ -118,5 +175,15 @@ namespace InputF8 {
 				DisplayText.Text = "";
 			}
 		}
+
+		private void ToolStripItemExit_Click(object sender, EventArgs e) {
+			Application.Exit();
+		}
+
+		private void ToolStripMenuItemTray_Click(object sender, EventArgs e) {
+			MoveToTray(true);
+		}
+
+		#endregion
 	}
 }

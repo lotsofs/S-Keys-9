@@ -13,5 +13,9 @@ namespace InputF8 {
 		public SettingsForm() {
 			InitializeComponent();
 		}
+
+		private void FontButton_Click(object sender, EventArgs e) {
+			FontDialog.ShowDialog();
+		}
 	}
 }

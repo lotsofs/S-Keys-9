@@ -255,10 +255,10 @@ namespace InputF8 {
 		}
 
 		public void BackupSave() {
-			File.Copy(Paths.CountPath, Path.ChangeExtension(Paths.CountPath, ".log.bak"), true);
-			File.Copy(Paths.DurationPath, Path.ChangeExtension(Paths.DurationPath, ".log.bak"), true);
-			File.Copy(Paths.MousePath, Path.ChangeExtension(Paths.MousePath, ".log.bak"), true);
-			File.Copy(Paths.InteractionPath, Path.ChangeExtension(Paths.InteractionPath, ".log.bak"), true);
+			File.Copy(Configuration.CountPath, Path.ChangeExtension(Configuration.CountPath, ".log.bak"), true);
+			File.Copy(Configuration.DurationPath, Path.ChangeExtension(Configuration.DurationPath, ".log.bak"), true);
+			File.Copy(Configuration.MousePath, Path.ChangeExtension(Configuration.MousePath, ".log.bak"), true);
+			File.Copy(Configuration.InteractionPath, Path.ChangeExtension(Configuration.InteractionPath, ".log.bak"), true);
 		}
 		
 		/// <summary>
@@ -266,22 +266,22 @@ namespace InputF8 {
 		/// </summary>
 		public void SaveFiles() {
 			//await Task.Delay(1);
-			using (StreamWriter sw = new StreamWriter(Paths.CountPath)) {
+			using (StreamWriter sw = new StreamWriter(Configuration.CountPath)) {
 				for (int key = 0; key <= 0xFF; key++) {
 					sw.WriteLine(string.Format("{0:X2} {1}", key, _inputsCount[key]));
 				}
 			}
-			using (StreamWriter sw = new StreamWriter(Paths.DurationPath)) {
+			using (StreamWriter sw = new StreamWriter(Configuration.DurationPath)) {
 				for (int key = 0; key <= 0xFF; key++) {
 					sw.WriteLine(string.Format("{0:X2} {1}", key, _inputsDuration[key]));
 				}
 			}
-			using (StreamWriter sw = new StreamWriter(Paths.MousePath)) {
+			using (StreamWriter sw = new StreamWriter(Configuration.MousePath)) {
 				foreach (int i in _mousePos.Keys) {
 					sw.WriteLine(string.Format("{0:X8} {1:X}", i, _mousePos[i].Ticks));
 				}
 			}
-			using (StreamWriter sw = new StreamWriter(Paths.InteractionPath)) {
+			using (StreamWriter sw = new StreamWriter(Configuration.InteractionPath)) {
 				foreach (int i in _mouseInteractions.Keys) {
 					sw.WriteLine(string.Format("{0:X8} {1:X}", i, _mouseInteractions[i]));
 				}
@@ -292,8 +292,8 @@ namespace InputF8 {
 		/// Read saved files
 		/// </summary>
 		void LoadFiles() {
-			if (File.Exists(Paths.CountPath)) {
-				IEnumerable<string> countTexts = File.ReadLines(Paths.CountPath);
+			if (File.Exists(Configuration.CountPath)) {
+				IEnumerable<string> countTexts = File.ReadLines(Configuration.CountPath);
 				foreach (string countText in countTexts) {
 					int key = int.Parse(countText.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
 					uint count = uint.Parse(countText.Substring(3));
@@ -306,8 +306,8 @@ namespace InputF8 {
 				}
 			}
 
-			if (File.Exists(Paths.DurationPath)) {
-				IEnumerable<string> durationTexts = File.ReadLines(Paths.DurationPath);
+			if (File.Exists(Configuration.DurationPath)) {
+				IEnumerable<string> durationTexts = File.ReadLines(Configuration.DurationPath);
 				foreach (string durationText in durationTexts) {
 					int key = int.Parse(durationText.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
 					TimeSpan duration = TimeSpan.Parse(durationText.Substring(3));
@@ -320,8 +320,8 @@ namespace InputF8 {
 				}
 			}
 
-			if (File.Exists(Paths.MousePath)) {
-				IEnumerable<string> mouseTexts = File.ReadLines(Paths.MousePath);
+			if (File.Exists(Configuration.MousePath)) {
+				IEnumerable<string> mouseTexts = File.ReadLines(Configuration.MousePath);
 				foreach (string mouseText in mouseTexts) {
 					int coord = int.Parse(mouseText.Substring(0, 8), System.Globalization.NumberStyles.HexNumber);
 					TimeSpan duration = TimeSpan.FromTicks(long.Parse(mouseText.Substring(9), System.Globalization.NumberStyles.HexNumber));
@@ -329,8 +329,8 @@ namespace InputF8 {
 				}
 			}
 
-			if (File.Exists(Paths.InteractionPath)) {
-				IEnumerable<string> mouseTexts = File.ReadLines(Paths.InteractionPath);
+			if (File.Exists(Configuration.InteractionPath)) {
+				IEnumerable<string> mouseTexts = File.ReadLines(Configuration.InteractionPath);
 				foreach (string mouseText in mouseTexts) {
 					int coord = int.Parse(mouseText.Substring(0, 8), System.Globalization.NumberStyles.HexNumber);
 					int count = int.Parse(mouseText.Substring(9), System.Globalization.NumberStyles.HexNumber);
