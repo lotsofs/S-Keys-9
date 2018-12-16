@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -87,6 +88,22 @@ namespace InputF8 {
 		public static void AddValueToDictionaryValue(Dictionary<string, int> dic, string key, int value) {
 			if (dic.ContainsKey(key)) {
 				dic[key] += value;
+			}
+			else {
+				dic.Add(key, value);
+			}
+		}
+
+		/// <summary>
+		/// sets the string in a dictionary
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="dic"></param>
+		/// <param name="key"></param>
+		/// <param name="value"></param>
+		public static void AddStringToDictionary(Dictionary<string, string> dic, string key, string value) {
+			if (dic.ContainsKey(key)) {
+				dic[key] = value;
 			}
 			else {
 				dic.Add(key, value);

@@ -15,8 +15,8 @@ namespace InputF8 {
 		public MainForm() {
 			InitializeComponent();
 			Configuration.SetDirectories();
-			Configuration.LoadSettings();
-			UpdateApperance();
+			Configuration.ReadSettings();
+			UpdateAppearance();
 
 			Application.ApplicationExit += new EventHandler(ExitProgram);
 			AddHooks();
@@ -48,11 +48,15 @@ namespace InputF8 {
 		/// <summary>
 		/// updates appearance based on user's selected settigns
 		/// </summary>
-		void UpdateApperance() {
-			Font font = new Font(Configuration.name, Configuration.size, (FontStyle)Configuration.style);
+		void UpdateAppearance() {
+			Font font = new Font(Configuration.Name, Configuration.Size, (FontStyle)Configuration.Style);
 			DisplayText.Font = font;
-			DisplayText.ForeColor = Color.FromArgb(Configuration.color);
-			this.BackColor = Color.FromArgb(Configuration.backColor);
+			DisplayText.ForeColor = Color.FromArgb(Configuration.Color);
+			this.BackColor = Color.FromArgb(Configuration.BackColor);
+		}
+
+		void UpdateAppearance(object sender, EventArgs e) {
+			UpdateAppearance();
 		}
 
 		/// <summary>
@@ -157,6 +161,7 @@ namespace InputF8 {
 
 		private void ToolStripMenuItemSettings_Click(object sender, EventArgs e) {
 			SettingsForm form = new SettingsForm();
+			form.OnSettingsChanged += UpdateAppearance;
 			form.Show();
 			
 			//ColorDialog b = new ColorDialog();
@@ -164,7 +169,7 @@ namespace InputF8 {
 			//string a = b.Color.ToArgb().ToString("X");
 			//Debug.WriteLine(a);
 			//int c = int.Parse(a, System.Globalization.NumberStyles.HexNumber);
-			this.BackColor = System.Drawing.Color.FromArgb(Configuration.color);
+			//this.BackColor = System.Drawing.Color.FromArgb(Configuration.Color);
 		}
 
 		private void ToolStripMenuItemDisableDisplay_CheckedChanged(object sender, EventArgs e) {

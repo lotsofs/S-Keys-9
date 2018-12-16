@@ -27,6 +27,8 @@
 			this.ExitToTrayCheckBox = new System.Windows.Forms.CheckBox();
 			this.FontButton = new System.Windows.Forms.Button();
 			this.FontDialog = new System.Windows.Forms.FontDialog();
+			this.OkButton = new System.Windows.Forms.Button();
+			this.ÁbortButton = new System.Windows.Forms.Button();
 			this.SuspendLayout();
 			// 
 			// MinimizeToTrayCheckBox
@@ -63,11 +65,33 @@
 			// 
 			this.FontDialog.AllowScriptChange = false;
 			// 
+			// OkButton
+			// 
+			this.OkButton.Location = new System.Drawing.Point(713, 35);
+			this.OkButton.Name = "OkButton";
+			this.OkButton.Size = new System.Drawing.Size(75, 23);
+			this.OkButton.TabIndex = 5;
+			this.OkButton.Text = "OK";
+			this.OkButton.UseVisualStyleBackColor = true;
+			this.OkButton.Click += new System.EventHandler(this.OkButton_Click);
+			// 
+			// CancelButton
+			// 
+			this.ÁbortButton.Location = new System.Drawing.Point(713, 64);
+			this.ÁbortButton.Name = "CancelButton";
+			this.ÁbortButton.Size = new System.Drawing.Size(75, 23);
+			this.ÁbortButton.TabIndex = 6;
+			this.ÁbortButton.Text = "Cancel";
+			this.ÁbortButton.UseVisualStyleBackColor = true;
+			this.ÁbortButton.Click += new System.EventHandler(this.AbortButton_Click);
+			// 
 			// SettingsForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(800, 450);
+			this.Controls.Add(this.ÁbortButton);
+			this.Controls.Add(this.OkButton);
 			this.Controls.Add(this.FontButton);
 			this.Controls.Add(this.ExitToTrayCheckBox);
 			this.Controls.Add(this.MinimizeToTrayCheckBox);
@@ -83,5 +107,7 @@
 		private System.Windows.Forms.CheckBox ExitToTrayCheckBox;
 		private System.Windows.Forms.Button FontButton;
 		private System.Windows.Forms.FontDialog FontDialog;
+		private System.Windows.Forms.Button OkButton;
+		private System.Windows.Forms.Button ÁbortButton;
 	}
 }
