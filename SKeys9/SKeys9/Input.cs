@@ -123,8 +123,10 @@ namespace SKeys9 {
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
 		internal void OnButtonDown(object sender, KeyEventArgs e) {
-			_stopwatches.KeyPressStart(e.Key);
-			S.Dictionaries.IncrementValue(_inputsCount, e.Key, 1);
+			if (Configuration.LogButtons) {
+				_stopwatches.KeyPressStart(e.Key);
+				S.Dictionaries.IncrementValue(_inputsCount, e.Key, 1);
+			}
 			SetButtonAsPressed(e.Key, true);
 		}
 
@@ -134,8 +136,10 @@ namespace SKeys9 {
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
 		internal void OnButtonUp(object sender, KeyEventArgs e) {
-			TimeSpan time = _stopwatches.KeyPressStop(e.Key);
-			S.Dictionaries.IncrementValue(_inputsDuration, e.Key, time);
+			if (Configuration.LogButtons) {
+				TimeSpan time = _stopwatches.KeyPressStop(e.Key);
+				S.Dictionaries.IncrementValue(_inputsDuration, e.Key, time);
+			}
 			SetButtonAsPressed(e.Key, false);
 		}
 
@@ -145,10 +149,14 @@ namespace SKeys9 {
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
 		internal void OnMouseDown(object sender, MouseEventArgs e) {
-			_stopwatches.KeyPressStart((int)e.Button);
-			S.Dictionaries.IncrementValue(_inputsCount, (int)e.Button, 1);
-			int coordsInt = S.Bits.CombineInt(e.X / 10, e.Y / 10);
-			S.Dictionaries.IncrementValue(_mouseInteractions, coordsInt, 1);
+			if (Configuration.LogButtons) {
+				_stopwatches.KeyPressStart((int)e.Button);
+				S.Dictionaries.IncrementValue(_inputsCount, (int)e.Button, 1);
+			}
+			if (Configuration.LogClicks) {
+				int coordsInt = S.Bits.CombineInt(e.X / 10, e.Y / 10);
+				S.Dictionaries.IncrementValue(_mouseInteractions, coordsInt, 1);
+			}
 			SetButtonAsPressed((int)e.Button, true);
 		}
 
@@ -158,10 +166,14 @@ namespace SKeys9 {
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
 		internal void OnMouseUp(object sender, MouseEventArgs e) {
-			TimeSpan time = _stopwatches.KeyPressStop((int)e.Button);
-			S.Dictionaries.IncrementValue(_inputsDuration, (int)e.Button, time);
-			//int coordsInt = MathS.CombineInt(e.X, e.Y);
-			//MathS.AddValueToDictionaryValue(_mouseInteractions, coordsInt, 1);
+			if (Configuration.LogButtons) {
+				TimeSpan time = _stopwatches.KeyPressStop((int)e.Button);
+				S.Dictionaries.IncrementValue(_inputsDuration, (int)e.Button, time);
+			}
+			//if (Configuration.LogClicks) {
+			//	int coordsInt = MathS.CombineInt(e.X, e.Y);
+			//	MathS.AddValueToDictionaryValue(_mouseInteractions, coordsInt, 1);
+			//}
 			SetButtonAsPressed((int)e.Button, false);
 		}
 		
@@ -173,6 +185,7 @@ namespace SKeys9 {
 		/// Creates a thread to process mouse movement data
 		/// </summary>
 		void StartMouseMovementProcessing() {
+			// Todo: Add a way to stop this
 			_oldMouseX = Cursor.Position.X;
 			_oldMouseY = Cursor.Position.Y;
 
@@ -188,7 +201,9 @@ namespace SKeys9 {
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
 		internal void OnMouseMove(object sender, MoveEventArgs e) {
-			_mouseLocationQueue.Enqueue(e);
+			if (Configuration.LogMovement) {
+				_mouseLocationQueue.Enqueue(e);
+			}
 		}
 
 		/// <summary>
@@ -213,6 +228,10 @@ namespace SKeys9 {
 		/// </summary>
 		/// <param name="e"></param>
 		void MouseMoveProcessing(MoveEventArgs e) {
+			if (!Configuration.LogMovement) {
+				return;
+			}
+
 			S.Dictionaries.IncrementValue(_inputsDuration, 0x9B, TimeSpan.FromTicks(1)); // hijacked an unassigned VK code's slot
 			double distance = S.Math.Distance2D(e.X, e.Y, _oldMouseX, _oldMouseY);
 			uint centiDistance = (uint)(distance * 100); // calculating distance to the centipixel, should be accurate enough
@@ -258,35 +277,47 @@ namespace SKeys9 {
 		/// Makes a backup save
 		/// </summary>
 		public void BackupSave() {
-			File.Copy(Configuration.CountPath, Path.ChangeExtension(Configuration.CountPath, ".log.bak"), true);
-			File.Copy(Configuration.DurationPath, Path.ChangeExtension(Configuration.DurationPath, ".log.bak"), true);
-			File.Copy(Configuration.MousePath, Path.ChangeExtension(Configuration.MousePath, ".log.bak"), true);
-			File.Copy(Configuration.InteractionPath, Path.ChangeExtension(Configuration.InteractionPath, ".log.bak"), true);
+			if (Configuration.LogButtons) {
+				File.Copy(Configuration.CountPath, Path.ChangeExtension(Configuration.CountPath, ".log.bak"), true);
+				File.Copy(Configuration.DurationPath, Path.ChangeExtension(Configuration.DurationPath, ".log.bak"), true);
+			}
+			if (Configuration.LogClicks) {
+				File.Copy(Configuration.InteractionPath, Path.ChangeExtension(Configuration.InteractionPath, ".log.bak"), true);
+			}
+			if (Configuration.LogMovement) {
+				File.Copy(Configuration.MousePath, Path.ChangeExtension(Configuration.MousePath, ".log.bak"), true);
+			}
 		}
-		
+
 		/// <summary>
 		/// write data to file
 		/// </summary>
 		public void SaveFiles() {
 			try {
-				using (StreamWriter sw = new StreamWriter(Configuration.CountPath)) {
-					for (int key = 0; key <= 0xFF; key++) {
-						sw.WriteLine(string.Format("{0:X2} {1}", key, _inputsCount[key]));
+				if (Configuration.LogButtons) {
+					using (StreamWriter sw = new StreamWriter(Configuration.CountPath)) {
+						for (int key = 0; key <= 0xFF; key++) {
+							sw.WriteLine(string.Format("{0:X2} {1}", key, _inputsCount[key]));
+						}
+					}
+					using (StreamWriter sw = new StreamWriter(Configuration.DurationPath)) {
+						for (int key = 0; key <= 0xFF; key++) {
+							sw.WriteLine(string.Format("{0:X2} {1}", key, _inputsDuration[key]));
+						}
 					}
 				}
-				using (StreamWriter sw = new StreamWriter(Configuration.DurationPath)) {
-					for (int key = 0; key <= 0xFF; key++) {
-						sw.WriteLine(string.Format("{0:X2} {1}", key, _inputsDuration[key]));
+				if (Configuration.LogMovement) {
+					using (StreamWriter sw = new StreamWriter(Configuration.MousePath)) {
+						foreach (int i in _mousePos.Keys) {
+							sw.WriteLine(string.Format("{0:X8} {1:X}", i, _mousePos[i].Ticks));
+						}
 					}
 				}
-				using (StreamWriter sw = new StreamWriter(Configuration.MousePath)) {
-					foreach (int i in _mousePos.Keys) {
-						sw.WriteLine(string.Format("{0:X8} {1:X}", i, _mousePos[i].Ticks));
-					}
-				}
-				using (StreamWriter sw = new StreamWriter(Configuration.InteractionPath)) {
-					foreach (int i in _mouseInteractions.Keys) {
-						sw.WriteLine(string.Format("{0:X8} {1:X}", i, _mouseInteractions[i]));
+				if (Configuration.LogClicks) {
+					using (StreamWriter sw = new StreamWriter(Configuration.InteractionPath)) {
+						foreach (int i in _mouseInteractions.Keys) {
+							sw.WriteLine(string.Format("{0:X8} {1:X}", i, _mouseInteractions[i]));
+						}
 					}
 				}
 			}

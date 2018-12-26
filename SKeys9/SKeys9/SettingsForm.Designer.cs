@@ -40,9 +40,14 @@
 			this.ButtonForeColor = new System.Windows.Forms.Button();
 			this.ColorDialog = new System.Windows.Forms.ColorDialog();
 			this.BackColorDialog = new System.Windows.Forms.ColorDialog();
+			this.GroupBoxFeatures = new System.Windows.Forms.GroupBox();
+			this.LogButtonsCheckbox = new System.Windows.Forms.CheckBox();
+			this.LogClicksCheckbox = new System.Windows.Forms.CheckBox();
+			this.LogMovementCheckbox = new System.Windows.Forms.CheckBox();
 			this.GroupBoxFont.SuspendLayout();
 			this.GroupBoxWindow.SuspendLayout();
 			this.GroupBoxColor.SuspendLayout();
+			this.GroupBoxFeatures.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// MinimizeToTrayCheckBox
@@ -111,7 +116,7 @@
             | System.Windows.Forms.AnchorStyles.Left)));
 			this.FontLabel.Location = new System.Drawing.Point(6, 45);
 			this.FontLabel.Name = "FontLabel";
-			this.FontLabel.Size = new System.Drawing.Size(188, 50);
+			this.FontLabel.Size = new System.Drawing.Size(188, 58);
 			this.FontLabel.TabIndex = 7;
 			this.FontLabel.Text = "Font Name xxpt Style";
 			// 
@@ -121,7 +126,7 @@
 			this.GroupBoxFont.Controls.Add(this.FontLabel);
 			this.GroupBoxFont.Location = new System.Drawing.Point(12, 84);
 			this.GroupBoxFont.Name = "GroupBoxFont";
-			this.GroupBoxFont.Size = new System.Drawing.Size(200, 98);
+			this.GroupBoxFont.Size = new System.Drawing.Size(200, 106);
 			this.GroupBoxFont.TabIndex = 8;
 			this.GroupBoxFont.TabStop = false;
 			this.GroupBoxFont.Text = "Font";
@@ -186,11 +191,57 @@
 			this.ButtonForeColor.UseVisualStyleBackColor = true;
 			this.ButtonForeColor.Click += new System.EventHandler(this.ButtonForeColor_Click);
 			// 
+			// GroupBoxFeatures
+			// 
+			this.GroupBoxFeatures.Controls.Add(this.LogMovementCheckbox);
+			this.GroupBoxFeatures.Controls.Add(this.LogClicksCheckbox);
+			this.GroupBoxFeatures.Controls.Add(this.LogButtonsCheckbox);
+			this.GroupBoxFeatures.Location = new System.Drawing.Point(218, 96);
+			this.GroupBoxFeatures.Name = "GroupBoxFeatures";
+			this.GroupBoxFeatures.Size = new System.Drawing.Size(200, 94);
+			this.GroupBoxFeatures.TabIndex = 11;
+			this.GroupBoxFeatures.TabStop = false;
+			this.GroupBoxFeatures.Text = "Logging";
+			// 
+			// LogButtonsCheckbox
+			// 
+			this.LogButtonsCheckbox.AutoSize = true;
+			this.LogButtonsCheckbox.Location = new System.Drawing.Point(6, 19);
+			this.LogButtonsCheckbox.Name = "LogButtonsCheckbox";
+			this.LogButtonsCheckbox.Size = new System.Drawing.Size(97, 17);
+			this.LogButtonsCheckbox.TabIndex = 4;
+			this.LogButtonsCheckbox.Text = "Button Presses";
+			this.LogButtonsCheckbox.UseVisualStyleBackColor = true;
+			this.LogButtonsCheckbox.CheckedChanged += new System.EventHandler(this.LogButtonsCheckbox_CheckedChanged);
+			// 
+			// LogClicksCheckbox
+			// 
+			this.LogClicksCheckbox.AutoSize = true;
+			this.LogClicksCheckbox.Location = new System.Drawing.Point(6, 42);
+			this.LogClicksCheckbox.Name = "LogClicksCheckbox";
+			this.LogClicksCheckbox.Size = new System.Drawing.Size(143, 17);
+			this.LogClicksCheckbox.TabIndex = 5;
+			this.LogClicksCheckbox.Text = "Mouse Click Coordinates";
+			this.LogClicksCheckbox.UseVisualStyleBackColor = true;
+			this.LogClicksCheckbox.CheckedChanged += new System.EventHandler(this.LogClicksCheckbox_CheckedChanged);
+			// 
+			// LogMovementCheckbox
+			// 
+			this.LogMovementCheckbox.AutoSize = true;
+			this.LogMovementCheckbox.Location = new System.Drawing.Point(6, 65);
+			this.LogMovementCheckbox.Name = "LogMovementCheckbox";
+			this.LogMovementCheckbox.Size = new System.Drawing.Size(111, 17);
+			this.LogMovementCheckbox.TabIndex = 6;
+			this.LogMovementCheckbox.Text = "Mouse Movement";
+			this.LogMovementCheckbox.UseVisualStyleBackColor = true;
+			this.LogMovementCheckbox.CheckedChanged += new System.EventHandler(this.LogMovementCheckbox_CheckedChanged);
+			// 
 			// SettingsForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(511, 189);
+			this.ClientSize = new System.Drawing.Size(511, 199);
+			this.Controls.Add(this.GroupBoxFeatures);
 			this.Controls.Add(this.GroupBoxColor);
 			this.Controls.Add(this.GroupBoxWindow);
 			this.Controls.Add(this.GroupBoxFont);
@@ -203,6 +254,8 @@
 			this.GroupBoxWindow.ResumeLayout(false);
 			this.GroupBoxWindow.PerformLayout();
 			this.GroupBoxColor.ResumeLayout(false);
+			this.GroupBoxFeatures.ResumeLayout(false);
+			this.GroupBoxFeatures.PerformLayout();
 			this.ResumeLayout(false);
 
 		}
@@ -224,5 +277,9 @@
 		private System.Windows.Forms.Button ButtonForeColor;
 		private System.Windows.Forms.ColorDialog ColorDialog;
 		private System.Windows.Forms.ColorDialog BackColorDialog;
+		private System.Windows.Forms.GroupBox GroupBoxFeatures;
+		private System.Windows.Forms.CheckBox LogMovementCheckbox;
+		private System.Windows.Forms.CheckBox LogClicksCheckbox;
+		private System.Windows.Forms.CheckBox LogButtonsCheckbox;
 	}
 }

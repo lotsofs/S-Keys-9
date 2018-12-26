@@ -15,6 +15,10 @@ namespace SKeys9 {
 		internal static bool MinimizeToTray = true;
 		internal static bool ExitToTray = false;
 
+		internal static bool LogButtons = false;
+		internal static bool LogClicks = false;
+		internal static bool LogMovement = false;
+
 		internal static string Name = "Microsoft Sans Serif";
 		internal static float Size = 18;	// point size
 		internal static int Style = 1;  //cast as FontStyle struct
@@ -65,6 +69,7 @@ namespace SKeys9 {
 		/// </summary>
 		internal static void LoadSettings() {
 			foreach (string setting in serializableSettings.Keys) {
+				Debug.WriteLine(setting);
 				switch (setting) {
 					default:
 						break;
@@ -93,6 +98,15 @@ namespace SKeys9 {
 					case "ExitToTray":
 						Configuration.ExitToTray = bool.Parse(serializableSettings[setting]);
 						break;
+					case "LogButtons":
+						Configuration.LogButtons = bool.Parse(serializableSettings[setting]);
+						break;
+					case "LogClicks":
+						Configuration.LogClicks = bool.Parse(serializableSettings[setting]);
+						break;
+					case "LogMovement":
+						Configuration.LogMovement = bool.Parse(serializableSettings[setting]);
+						break;
 				}
 			}
 		}
@@ -108,6 +122,9 @@ namespace SKeys9 {
 			S.Dictionaries.SetValue(serializableSettings, "BackColor", Configuration.BackColor.ToString("X6").Substring(2));
 			S.Dictionaries.SetValue(serializableSettings, "MinimizeToTray", Configuration.MinimizeToTray.ToString());
 			S.Dictionaries.SetValue(serializableSettings, "ExitToTray", Configuration.ExitToTray.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "LogButtons", Configuration.LogButtons.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "LogClicks", Configuration.LogClicks.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "LogMovement", Configuration.LogMovement.ToString());
 			SaveSettings();
 		}
 

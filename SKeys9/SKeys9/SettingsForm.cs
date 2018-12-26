@@ -15,6 +15,10 @@ namespace SKeys9 {
 			MinimizeToTrayCheckBox.Checked = Configuration.MinimizeToTray;
 			ExitToTrayCheckBox.Checked = Configuration.ExitToTray;
 
+			LogButtonsCheckbox.Checked = Configuration.LogButtons;
+			LogClicksCheckbox.Checked = Configuration.LogClicks;
+			LogMovementCheckbox.Checked = Configuration.LogMovement;
+
 			_font = new Font(Configuration.Name, Configuration.Size, (FontStyle)Configuration.Style);
 			FontDialog.Font = _font;
 			FontLabel.Text = String.Format("{0} {2}pt {1}", _font.Name, _font.Style, _font.Size);
@@ -75,6 +79,21 @@ namespace SKeys9 {
 
 		private void ExitToTrayCheckBox_CheckedChanged(object sender, EventArgs e) {
 			Configuration.ExitToTray = ExitToTrayCheckBox.Checked;
+			OnSettingsChanged?.Invoke(this, new EventArgs());
+		}
+		
+		private void LogButtonsCheckbox_CheckedChanged(object sender, EventArgs e) {
+			Configuration.LogButtons = LogButtonsCheckbox.Checked;
+			OnSettingsChanged?.Invoke(this, new EventArgs());
+		}
+
+		private void LogClicksCheckbox_CheckedChanged(object sender, EventArgs e) {
+			Configuration.LogClicks = LogClicksCheckbox.Checked;
+			OnSettingsChanged?.Invoke(this, new EventArgs());
+		}
+
+		private void LogMovementCheckbox_CheckedChanged(object sender, EventArgs e) {
+			Configuration.LogMovement = LogMovementCheckbox.Checked;
 			OnSettingsChanged?.Invoke(this, new EventArgs());
 		}
 
