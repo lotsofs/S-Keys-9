@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Diagnostics;
 using System.Drawing;
-using System.IO;
 using System.Windows.Forms;
-using System.Windows.Input;
 
-namespace InputF8 {
+namespace SKeys9 {
 	public partial class MainForm : Form {
 		Hooks _hooks;
 		Input _input;
@@ -18,7 +13,7 @@ namespace InputF8 {
 			Configuration.ReadSettings();
 			UpdateAppearance();
 
-			Application.ApplicationExit += new EventHandler(ExitProgram);
+			Application.ApplicationExit += new EventHandler(PrepareProgramForExit);
 			AddHooks();
 		}
 
@@ -33,8 +28,8 @@ namespace InputF8 {
 
 			_input.OnKeysChanged += UpdateText;
 
-			_hooks.OnKeyDown += _input.OnKeyDown;
-			_hooks.OnKeyUp += _input.OnKeyUp;
+			_hooks.OnKeyDown += _input.OnButtonDown;
+			_hooks.OnKeyUp += _input.OnButtonUp;
 			_hooks.OnMouseDown += _input.OnMouseDown;
 			_hooks.OnMouseUp += _input.OnMouseUp;
 			_hooks.OnMouseScroll += _input.OnMouseScroll;
@@ -45,18 +40,18 @@ namespace InputF8 {
 
 		#endregion
 
+		#region display
+
 		/// <summary>
-		/// updates appearance based on user's selected settigns
+		/// updates appearance based on user's selected settings
 		/// </summary>
-		void UpdateAppearance() {
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		void UpdateAppearance(object sender = null, EventArgs e = null) {
 			Font font = new Font(Configuration.Name, Configuration.Size, (FontStyle)Configuration.Style);
 			DisplayText.Font = font;
 			DisplayText.ForeColor = Color.FromArgb(Configuration.Color);
 			this.BackColor = Color.FromArgb(Configuration.BackColor);
-		}
-
-		void UpdateAppearance(object sender, EventArgs e) {
-			UpdateAppearance();
 		}
 
 		/// <summary>
@@ -64,7 +59,7 @@ namespace InputF8 {
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		private void UpdateText(object sender, ChangeEventArgs e) {
+		void UpdateText(object sender, ChangeEventArgs e) {
 			if (ToolStripMenuItemDisableDisplay.Checked) {
 				return;
 			}
@@ -82,6 +77,8 @@ namespace InputF8 {
 			DisplayText.Text = text;
 		}
 
+		#endregion
+
 		#region exit procedure
 
 		/// <summary>
@@ -90,7 +87,7 @@ namespace InputF8 {
 		/// <param name="m"></param>
 		protected override void WndProc(ref Message m) {
 			if (m.Msg == 0x11) {    // WM_QUERYENDSESSION
-				ExitProgram();
+				PrepareProgramForExit();
 			}
 			base.WndProc(ref m);
 		}
@@ -98,19 +95,19 @@ namespace InputF8 {
 		/// <summary>
 		/// Prepares program for exit, saving stuff, closing hooks etc
 		/// </summary>
-		void ExitProgram() {
+		void PrepareProgramForExit(object sender = null, EventArgs e = null) {
 			_hooks.DisableHooks();
 			_input.SaveFiles();
-		}
-
-		void ExitProgram(object sender, EventArgs e) {
-			ExitProgram();
 		}
 
 		#endregion
 
 		#region form closing/minimizing/tray behavior
 
+		/// <summary>
+		/// Moves the tool to the tray instead of the taskbar
+		/// </summary>
+		/// <param name="tray">Whether to move or unmove</param>
 		void MoveToTray(bool tray) {
 			NotifyIcon.Visible = tray;
 			if (tray) {
@@ -128,7 +125,7 @@ namespace InputF8 {
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		private void MainForm_Resize(object sender, EventArgs e) {
+		void MainForm_Resize(object sender, EventArgs e) {
 			if (WindowState == FormWindowState.Minimized && Configuration.MinimizeToTray) {
 				MoveToTray(true);
 			}
@@ -139,7 +136,7 @@ namespace InputF8 {
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		private void NotifyIcon_DoubleClick(object sender, EventArgs e) {
+		void NotifyIcon_DoubleClick(object sender, EventArgs e) {
 			MoveToTray(false);
 		}
 
@@ -148,7 +145,7 @@ namespace InputF8 {
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		private void MainForm_FormClosing(object sender, FormClosingEventArgs e) {
+		void MainForm_FormClosing(object sender, FormClosingEventArgs e) {
 			if (e.CloseReason == CloseReason.UserClosing && Configuration.ExitToTray) {
 				e.Cancel = true;
 				MoveToTray(true);
@@ -199,7 +196,6 @@ namespace InputF8 {
 		}
 		
 		#endregion
-
 
 	}
 }

@@ -15,6 +15,21 @@ namespace S {
 		/// <param name="dictionary">The dictionary</param>
 		/// <param name="key">The key</param>
 		/// <param name="count">Amount to increase the value by</param>
+		public static void IncrementValue(Dictionary<int, int> dictionary, int key, int count = 1) {
+			if (dictionary.ContainsKey(key)) {
+				dictionary[key] += count;
+			}
+			else {
+				dictionary.Add(key, count);
+			}
+		}
+
+		/// <summary>
+		/// Increments dictionary's value at key by count
+		/// </summary>
+		/// <param name="dictionary">The dictionary</param>
+		/// <param name="key">The key</param>
+		/// <param name="count">Amount to increase the value by</param>
 		public static void IncrementValue(Dictionary<int, uint> dictionary, int key, uint count = 1) {
 			if (dictionary.ContainsKey(key)) {
 				dictionary[key] += count;
@@ -39,13 +54,14 @@ namespace S {
 			}
 		}
 
+
 		/// <summary>
 		/// Increments dictionary's value at key by count
 		/// </summary>
 		/// <param name="dictionary">The dictionary</param>
 		/// <param name="key">The key</param>
 		/// <param name="count">Amount to increase the value by</param>
-		public static void IncrementValue(Dictionary<int, int> dictionary, int key, int count = 1) {
+		public static void IncrementValue(Dictionary<string, int> dictionary, string key, int count = 1) {
 			if (dictionary.ContainsKey(key)) {
 				dictionary[key] += count;
 			}
@@ -84,21 +100,6 @@ namespace S {
 			}
 		}
 
-		/// <summary>
-		/// Increments dictionary's value at key by count
-		/// </summary>
-		/// <param name="dictionary">The dictionary</param>
-		/// <param name="key">The key</param>
-		/// <param name="count">Amount to increase the value by</param>
-		public static void IncrementValue(Dictionary<string, int> dictionary, string key, int count = 1) {
-			if (dictionary.ContainsKey(key)) {
-				dictionary[key] += count;
-			}
-			else {
-				dictionary.Add(key, count);
-			}
-		}
-
 		#endregion
 
 		/// <summary>
@@ -115,6 +116,5 @@ namespace S {
 				dictionary.Add(key, value);
 			}
 		}
-
 	}
 }

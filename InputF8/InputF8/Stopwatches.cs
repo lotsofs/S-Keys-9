@@ -1,20 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace InputF8 {
+namespace SKeys9 {
 	class Stopwatches {
+		Dictionary<int, Stopwatch> _inputsStopwatches = new Dictionary<int, Stopwatch>();
+		Stopwatch _mouseStopwatch = new Stopwatch();
 
-		static Dictionary<int, Stopwatch> _inputsStopwatches = new Dictionary<int, Stopwatch>();
-		static Stopwatch _mouseStopwatch = new Stopwatch();
+		#region stopwatch for mouse tracking
 
 		/// <summary>
 		/// starts the stopwatch that tracks how long the mouse isn't moving for
 		/// </summary>
-		public static void MouseStart() {
+		internal void MouseStart() {
 			_mouseStopwatch.Restart();
 		}
 
@@ -22,16 +20,20 @@ namespace InputF8 {
 		/// stops the stopwatch that tracks how long the mouse isn't moving for
 		/// </summary>
 		/// <returns></returns>
-		public static TimeSpan MouseStop() {
+		internal TimeSpan MouseStop() {
 			_mouseStopwatch.Stop();
 			return _mouseStopwatch.Elapsed;
 		}
+
+		#endregion
+
+		#region stopwatch for keys
 
 		/// <summary>
 		/// starts a stopwatch that tracks the duration of a keypress
 		/// </summary>
 		/// <param name="key">the key the stopwatch is for</param>
-		public static void KeyPressStart(int key) {
+		internal void KeyPressStart(int key) {
 			if (!_inputsStopwatches.ContainsKey(key)) {
 				_inputsStopwatches.Add(key, new Stopwatch());
 				_inputsStopwatches[key].Restart();
@@ -42,7 +44,7 @@ namespace InputF8 {
 		/// stops a stopwatch that tracks the duration of a keypress
 		/// </summary>
 		/// <param name="key">the key the stopwatch is for</param>
-		public static TimeSpan KeyPressStop(int key) {
+		internal TimeSpan KeyPressStop(int key) {
 			if (_inputsStopwatches.ContainsKey(key)) {
 				_inputsStopwatches[key].Stop();
 				TimeSpan ts = _inputsStopwatches[key].Elapsed;
@@ -52,7 +54,6 @@ namespace InputF8 {
 			return TimeSpan.Zero;
 		}
 
-
-
+		#endregion 
 	}
 }

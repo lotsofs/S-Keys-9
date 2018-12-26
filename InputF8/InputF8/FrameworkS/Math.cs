@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace S {
 	public class Math {
-
 		/// <summary>
 		/// Pythagorean theorem between two coordinates
 		/// </summary>

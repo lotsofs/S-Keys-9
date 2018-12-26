@@ -1,17 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace InputF8 {
+namespace SKeys9 {
 	public partial class SettingsForm : Form {
-
 		public event EventHandler OnSettingsChanged;
 		Font _font;
 		Color _foreColor;
@@ -28,14 +20,15 @@ namespace InputF8 {
 			FontLabel.Text = String.Format("{0} {2}pt {1}", _font.Name, _font.Style, _font.Size);
 
 			_foreColor = Color.FromArgb(Configuration.Color);
-			ForeColorDialog.Color = _foreColor;
 			ForeColorPreview.BackColor = _foreColor;
 			_backColor = Color.FromArgb(Configuration.BackColor);
-			BackColorDialog.Color = _backColor;
 			BackColorPreview.BackColor = _backColor;
 		}
 
-		private void FontButton_Click(object sender, EventArgs e) {
+		/// <summary>
+		/// Opens a prompt to select a font and sets the font
+		/// </summary>
+		void SelectFont() {
 			FontDialog.ShowDialog();
 			_font = FontDialog.Font;
 			Configuration.Name = _font.Name;
@@ -45,21 +38,49 @@ namespace InputF8 {
 			OnSettingsChanged?.Invoke(this, new EventArgs());
 		}
 
-		private void ButtonForeColor_Click(object sender, EventArgs e) {
-			ForeColorDialog.ShowDialog();
-			_foreColor = ForeColorDialog.Color;
-			Configuration.Color = _foreColor.ToArgb();
-			ForeColorPreview.BackColor = _foreColor;
+		/// <summary>
+		/// Open a prompt to select a color
+		/// </summary>
+		/// <param name="color">Color the prompt shows by default</param>
+		/// <returns></returns>
+		Color SelectColor(Color color) {
+			ColorDialog.Color = color;
+			ColorDialog.ShowDialog();
+			color = ColorDialog.Color;
+			Configuration.Color = color.ToArgb();
 			OnSettingsChanged?.Invoke(this, new EventArgs());
+			return color;
+		}
+
+		#region events for buttons
+
+		private void FontButton_Click(object sender, EventArgs e) {
+			SelectFont();
+		}
+
+		private void ButtonForeColor_Click(object sender, EventArgs e) {
+			_foreColor = SelectColor(_foreColor);
+			ForeColorPreview.BackColor = _foreColor;
 		}
 
 		private void ButtonBackColor_Click(object sender, EventArgs e) {
-			BackColorDialog.ShowDialog();
-			_backColor = BackColorDialog.Color;
-			Configuration.BackColor = _backColor.ToArgb();
+			_backColor = SelectColor(_backColor);
 			BackColorPreview.BackColor = _backColor;
+		}
+
+		private void MinimizeToTrayCheckBox_CheckedChanged(object sender, EventArgs e) {
+			Configuration.MinimizeToTray = MinimizeToTrayCheckBox.Checked;
 			OnSettingsChanged?.Invoke(this, new EventArgs());
 		}
+
+		private void ExitToTrayCheckBox_CheckedChanged(object sender, EventArgs e) {
+			Configuration.ExitToTray = ExitToTrayCheckBox.Checked;
+			OnSettingsChanged?.Invoke(this, new EventArgs());
+		}
+
+		#endregion
+
+		#region confirmation buttons events
 
 		private void OkButton_Click(object sender, EventArgs e) {
 			Configuration.ApplySettings();
@@ -73,14 +94,7 @@ namespace InputF8 {
 			this.Close();
 		}
 
-		private void MinimizeToTrayCheckBox_CheckedChanged(object sender, EventArgs e) {
-			Configuration.MinimizeToTray = MinimizeToTrayCheckBox.Checked;
-			OnSettingsChanged?.Invoke(this, new EventArgs());
-		}
+		#endregion
 
-		private void ExitToTrayCheckBox_CheckedChanged(object sender, EventArgs e) {
-			Configuration.ExitToTray = ExitToTrayCheckBox.Checked;
-			OnSettingsChanged?.Invoke(this, new EventArgs());
-		}
 	}
 }

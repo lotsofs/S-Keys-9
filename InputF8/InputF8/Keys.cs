@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace InputF8 {
+namespace SKeys9 {
 	public static class Keys {
-		public static Dictionary<int, string> keyNames = new Dictionary<int, string> {
+		public static Dictionary<int, string> KeyNames = new Dictionary<int, string> {
 			{ 0x1, "LMB" },
 			{ 0x2, "RMB" }, 
 			//3
@@ -275,4 +275,6 @@ namespace InputF8 {
 			//FF
 		};
 	}
+
+	// Todo: Custom keynames support
 }

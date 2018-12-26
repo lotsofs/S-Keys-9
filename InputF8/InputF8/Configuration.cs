@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
-namespace InputF8 {
+namespace SKeys9 {
 	class Configuration {
 		internal static string DirectoryPath;
 		internal static string CountPath;

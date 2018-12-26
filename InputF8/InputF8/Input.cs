@@ -3,46 +3,36 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Windows.Input;
 
-namespace InputF8 {
+namespace SKeys9 {
 	public class Input {
-
 		Dictionary<int, uint> _inputsCount = new Dictionary<int, uint>();
 		Dictionary<int, TimeSpan> _inputsDuration = new Dictionary<int, TimeSpan>();
 
 		Dictionary<int, TimeSpan> _mousePos = new Dictionary<int, TimeSpan>();
 		Dictionary<int, int> _mouseInteractions = new Dictionary<int, int>();
 
-		public Dictionary<int, uint> InputsCount {
-			get {
-				return _inputsCount;
-			}
-		}
-
-		int _oldX;
-		int _oldY;
-
+		Stopwatches _stopwatches = new Stopwatches();
 		System.Windows.Forms.Timer _autosaveTimer;
 		System.Windows.Forms.Timer _scrollRemoveTimer;
 
+		int _oldMouseX;
+		int _oldMouseY;
+
 		List<string> _currentlyPressed = new List<string>();
 		Dictionary<string, int> _currentScrollCount = new Dictionary<string, int> {
-			{ Keys.keyNames[0x97], 0 }, 
-			{ Keys.keyNames[0x98], 0 }, 
-			{ Keys.keyNames[0x99], 0 }, 
-			{ Keys.keyNames[0x9A], 0 }, 
+			{ Keys.KeyNames[0x97], 0 }, 
+			{ Keys.KeyNames[0x98], 0 }, 
+			{ Keys.KeyNames[0x99], 0 }, 
+			{ Keys.KeyNames[0x9A], 0 }, 
 		};
 
 		public event EventHandler<ChangeEventArgs> OnKeysChanged;
 
-		ConcurrentQueue<MoveEventArgs> mouseLocationQueue = new ConcurrentQueue<MoveEventArgs>();
-		Thread mouseMoveThread;
+		ConcurrentQueue<MoveEventArgs> _mouseLocationQueue = new ConcurrentQueue<MoveEventArgs>();
+		Thread _mouseMoveThread;
 
 		internal Input() {
 			LoadFiles();
@@ -53,21 +43,13 @@ namespace InputF8 {
 
 		#region mouse scrollwheel counter
 
+		/// <summary>
+		/// Starts a timer that resets scroll wheel count back to 0 and removes it from the display
+		/// </summary>
 		void StartScrollRemoveTimer() {
 			_scrollRemoveTimer = new System.Windows.Forms.Timer();
-			_scrollRemoveTimer.Interval = 300; // TODO: Not hardcoded
+			_scrollRemoveTimer.Interval = 300; // TODO: Make this not hardcoded
 			_scrollRemoveTimer.Tick += ResetScrolls;
-		}
-
-		/// <summary>
-		/// mouse scroll
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		internal void OnMouseScroll(object sender, ScrollEventArgs e) {
-			int dictionaryEntry = (int)e.Direction + 0x97;  // hijacked some unassigned VK codes' slots
-			S.Dictionaries.IncrementValue(_inputsCount, dictionaryEntry, 1);
-			AddScroll(dictionaryEntry);
 		}
 
 		/// <summary>
@@ -83,18 +65,29 @@ namespace InputF8 {
 			_currentScrollCount["ScrRight"] = 0;
 			OnKeysChanged?.Invoke(this, new ChangeEventArgs(_currentlyPressed, _currentScrollCount));
 		}
+		
+		/// <summary>
+		/// Detects mouse scroll
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		internal void OnMouseScroll(object sender, ScrollEventArgs e) {
+			int dictionaryEntry = (int)e.Direction + 0x97;  // hijacked some unassigned VK codes' slots
+			S.Dictionaries.IncrementValue(_inputsCount, dictionaryEntry, 1);
+			AddScroll(dictionaryEntry);
+		}
 
 		/// <summary>
 		/// Increase scroll wheel counter by 1
 		/// </summary>
-		/// <param name="direction"></param>
-		void AddScroll(int direction) {
+		/// <param name="directionId"></param>
+		void AddScroll(int directionId) {
 			string scrollDirectionName;
-			if (Keys.keyNames.ContainsKey(direction)) {
-				scrollDirectionName = Keys.keyNames[direction];
+			if (Keys.KeyNames.ContainsKey(directionId)) {
+				scrollDirectionName = Keys.KeyNames[directionId];
 			}
 			else {
-				scrollDirectionName = ("?" + direction);
+				scrollDirectionName = ("?" + directionId);
 			}
 			S.Dictionaries.IncrementValue(_currentScrollCount, scrollDirectionName, 1);
 			_scrollRemoveTimer.Stop();
@@ -104,16 +97,17 @@ namespace InputF8 {
 
 		#endregion
 
-		#region Button Press Stuff
+		#region Button Press Detection
 
-		void SetKeyAsPressed(int key, bool pressed) {
+		/// <summary>
+		/// Marks a key's pressed status
+		/// </summary>
+		/// <param name="key">the key</param>
+		/// <param name="pressed">is it pressed?</param>
+		void SetButtonAsPressed(int key, bool pressed) {
 			string keyName;
-			if (Keys.keyNames.ContainsKey(key)) {
-				keyName = Keys.keyNames[key];
-			}
-			else {
-				keyName = ("?" + key);
-			}
+			keyName = Keys.KeyNames.ContainsKey(key) ? Keys.KeyNames[key] : ("?" + key);
+		
 			if (pressed) {
 				_currentlyPressed.Add(keyName);
 			}
@@ -128,10 +122,10 @@ namespace InputF8 {
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		internal void OnKeyDown(object sender, KeyEventArgs e) {
-			Stopwatches.KeyPressStart(e.Key);
+		internal void OnButtonDown(object sender, KeyEventArgs e) {
+			_stopwatches.KeyPressStart(e.Key);
 			S.Dictionaries.IncrementValue(_inputsCount, e.Key, 1);
-			SetKeyAsPressed(e.Key, true);
+			SetButtonAsPressed(e.Key, true);
 		}
 
 		/// <summary>
@@ -139,10 +133,10 @@ namespace InputF8 {
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		internal void OnKeyUp(object sender, KeyEventArgs e) {
-			TimeSpan time = Stopwatches.KeyPressStop(e.Key);
+		internal void OnButtonUp(object sender, KeyEventArgs e) {
+			TimeSpan time = _stopwatches.KeyPressStop(e.Key);
 			S.Dictionaries.IncrementValue(_inputsDuration, e.Key, time);
-			SetKeyAsPressed(e.Key, false);
+			SetButtonAsPressed(e.Key, false);
 		}
 
 		/// <summary>
@@ -151,11 +145,11 @@ namespace InputF8 {
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
 		internal void OnMouseDown(object sender, MouseEventArgs e) {
-			Stopwatches.KeyPressStart((int)e.Button);
+			_stopwatches.KeyPressStart((int)e.Button);
 			S.Dictionaries.IncrementValue(_inputsCount, (int)e.Button, 1);
 			int coordsInt = S.Bits.CombineInt(e.X / 10, e.Y / 10);
 			S.Dictionaries.IncrementValue(_mouseInteractions, coordsInt, 1);
-			SetKeyAsPressed((int)e.Button, true);
+			SetButtonAsPressed((int)e.Button, true);
 		}
 
 		/// <summary>
@@ -164,11 +158,11 @@ namespace InputF8 {
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
 		internal void OnMouseUp(object sender, MouseEventArgs e) {
-			TimeSpan time = Stopwatches.KeyPressStop((int)e.Button);
+			TimeSpan time = _stopwatches.KeyPressStop((int)e.Button);
 			S.Dictionaries.IncrementValue(_inputsDuration, (int)e.Button, time);
 			//int coordsInt = MathS.CombineInt(e.X, e.Y);
 			//MathS.AddValueToDictionaryValue(_mouseInteractions, coordsInt, 1);
-			SetKeyAsPressed((int)e.Button, false);
+			SetButtonAsPressed((int)e.Button, false);
 		}
 		
 		#endregion
@@ -179,13 +173,13 @@ namespace InputF8 {
 		/// Creates a thread to process mouse movement data
 		/// </summary>
 		void StartMouseMovementProcessing() {
-			_oldX = Cursor.Position.X;
-			_oldY = Cursor.Position.Y;
+			_oldMouseX = Cursor.Position.X;
+			_oldMouseY = Cursor.Position.Y;
 
-			mouseMoveThread = new Thread(() => ProcessQueuedMouseMovements(mouseLocationQueue));
-			mouseMoveThread.IsBackground = true;
-			mouseMoveThread.Name = "S Keys 9 BG Thread, where does this show up?";
-			mouseMoveThread.Start();
+			_mouseMoveThread = new Thread(() => ProcessQueuedMouseMovements(_mouseLocationQueue));
+			_mouseMoveThread.IsBackground = true;
+			//_mouseMoveThread.Name = "S Keys 9 BG Thread, where does this show up?";
+			_mouseMoveThread.Start();
 		}
 
 		/// <summary>
@@ -194,7 +188,7 @@ namespace InputF8 {
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
 		internal void OnMouseMove(object sender, MoveEventArgs e) {
-			mouseLocationQueue.Enqueue(e);
+			_mouseLocationQueue.Enqueue(e);
 		}
 
 		/// <summary>
@@ -220,7 +214,7 @@ namespace InputF8 {
 		/// <param name="e"></param>
 		void MouseMoveProcessing(MoveEventArgs e) {
 			S.Dictionaries.IncrementValue(_inputsDuration, 0x9B, TimeSpan.FromTicks(1)); // hijacked an unassigned VK code's slot
-			double distance = S.Math.Distance2D(e.X, e.Y, _oldX, _oldY);
+			double distance = S.Math.Distance2D(e.X, e.Y, _oldMouseX, _oldMouseY);
 			uint centiDistance = (uint)(distance * 100); // calculating distance to the centipixel, should be accurate enough
 			S.Dictionaries.IncrementValue(_inputsCount, 0x9B, centiDistance); // hijacked an unassigned VK code's slot
 			
@@ -230,11 +224,11 @@ namespace InputF8 {
 			}
 
 			int coordsInt = S.Bits.CombineInt(e.X / 100, e.X / 100);
-			S.Dictionaries.IncrementValue(_mousePos, coordsInt, Stopwatches.MouseStop());	// TODO: This adds the new position of the mouse when really it should be the previous position added
-			Stopwatches.MouseStart();
+			S.Dictionaries.IncrementValue(_mousePos, coordsInt, _stopwatches.MouseStop());   // TODO: This adds the new position of the mouse when really it should be the previous position added
+			_stopwatches.MouseStart();
 
-			_oldX = e.X;
-			_oldY = e.Y;
+			_oldMouseX = e.X;
+			_oldMouseY = e.Y;
 		}
 
 		#endregion
@@ -260,6 +254,9 @@ namespace InputF8 {
 			_autosaveTimer.Start();
 		}
 
+		/// <summary>
+		/// Makes a backup save
+		/// </summary>
 		public void BackupSave() {
 			File.Copy(Configuration.CountPath, Path.ChangeExtension(Configuration.CountPath, ".log.bak"), true);
 			File.Copy(Configuration.DurationPath, Path.ChangeExtension(Configuration.DurationPath, ".log.bak"), true);

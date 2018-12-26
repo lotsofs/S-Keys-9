@@ -1,4 +1,4 @@
-﻿namespace InputF8 {
+﻿namespace SKeys9 {
 	partial class CounterForm {
 		/// <summary>
 		/// Required designer variable.

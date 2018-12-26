@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace InputF8 {
+namespace SKeys9 {
 	/// <summary>
 	/// Event Args for keyboard input
 	/// </summary>

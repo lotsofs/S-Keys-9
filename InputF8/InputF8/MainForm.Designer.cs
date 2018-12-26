@@ -1,4 +1,4 @@
-﻿namespace InputF8 {
+﻿namespace SKeys9 {
 	partial class MainForm {
 		/// <summary>
 		/// Required designer variable.

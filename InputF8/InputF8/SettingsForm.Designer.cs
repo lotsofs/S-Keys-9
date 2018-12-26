@@ -1,4 +1,4 @@
-﻿namespace InputF8 {
+﻿namespace SKeys9 {
 	partial class SettingsForm {
 		/// <summary>
 		/// Required designer variable.
@@ -34,11 +34,11 @@
 			this.GroupBoxFont = new System.Windows.Forms.GroupBox();
 			this.GroupBoxWindow = new System.Windows.Forms.GroupBox();
 			this.GroupBoxColor = new System.Windows.Forms.GroupBox();
-			this.ButtonForeColor = new System.Windows.Forms.Button();
-			this.ButtonBackColor = new System.Windows.Forms.Button();
-			this.ForeColorPreview = new System.Windows.Forms.Panel();
 			this.BackColorPreview = new System.Windows.Forms.Panel();
-			this.ForeColorDialog = new System.Windows.Forms.ColorDialog();
+			this.ForeColorPreview = new System.Windows.Forms.Panel();
+			this.ButtonBackColor = new System.Windows.Forms.Button();
+			this.ButtonForeColor = new System.Windows.Forms.Button();
+			this.ColorDialog = new System.Windows.Forms.ColorDialog();
 			this.BackColorDialog = new System.Windows.Forms.ColorDialog();
 			this.GroupBoxFont.SuspendLayout();
 			this.GroupBoxWindow.SuspendLayout();
@@ -48,6 +48,8 @@
 			// MinimizeToTrayCheckBox
 			// 
 			this.MinimizeToTrayCheckBox.AutoSize = true;
+			this.MinimizeToTrayCheckBox.Checked = true;
+			this.MinimizeToTrayCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
 			this.MinimizeToTrayCheckBox.Location = new System.Drawing.Point(6, 19);
 			this.MinimizeToTrayCheckBox.Name = "MinimizeToTrayCheckBox";
 			this.MinimizeToTrayCheckBox.Size = new System.Drawing.Size(106, 17);
@@ -84,7 +86,7 @@
 			// OkButton
 			// 
 			this.OkButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.OkButton.Location = new System.Drawing.Point(540, 12);
+			this.OkButton.Location = new System.Drawing.Point(424, 12);
 			this.OkButton.Name = "OkButton";
 			this.OkButton.Size = new System.Drawing.Size(75, 23);
 			this.OkButton.TabIndex = 5;
@@ -95,7 +97,7 @@
 			// ÁbortButton
 			// 
 			this.ÁbortButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.ÁbortButton.Location = new System.Drawing.Point(540, 41);
+			this.ÁbortButton.Location = new System.Drawing.Point(424, 41);
 			this.ÁbortButton.Name = "ÁbortButton";
 			this.ÁbortButton.Size = new System.Drawing.Size(75, 23);
 			this.ÁbortButton.TabIndex = 6;
@@ -111,7 +113,7 @@
 			this.FontLabel.Name = "FontLabel";
 			this.FontLabel.Size = new System.Drawing.Size(188, 50);
 			this.FontLabel.TabIndex = 7;
-			this.FontLabel.Text = "Times New Roman Bold,Italic 28pt";
+			this.FontLabel.Text = "Font Name xxpt Style";
 			// 
 			// GroupBoxFont
 			// 
@@ -148,15 +150,21 @@
 			this.GroupBoxColor.TabStop = false;
 			this.GroupBoxColor.Text = "Color";
 			// 
-			// ButtonForeColor
+			// BackColorPreview
 			// 
-			this.ButtonForeColor.Location = new System.Drawing.Point(7, 19);
-			this.ButtonForeColor.Name = "ButtonForeColor";
-			this.ButtonForeColor.Size = new System.Drawing.Size(100, 23);
-			this.ButtonForeColor.TabIndex = 0;
-			this.ButtonForeColor.Text = "Text Color";
-			this.ButtonForeColor.UseVisualStyleBackColor = true;
-			this.ButtonForeColor.Click += new System.EventHandler(this.ButtonForeColor_Click);
+			this.BackColorPreview.BackColor = System.Drawing.Color.Black;
+			this.BackColorPreview.Location = new System.Drawing.Point(113, 48);
+			this.BackColorPreview.Name = "BackColorPreview";
+			this.BackColorPreview.Size = new System.Drawing.Size(81, 23);
+			this.BackColorPreview.TabIndex = 3;
+			// 
+			// ForeColorPreview
+			// 
+			this.ForeColorPreview.BackColor = System.Drawing.Color.White;
+			this.ForeColorPreview.Location = new System.Drawing.Point(113, 19);
+			this.ForeColorPreview.Name = "ForeColorPreview";
+			this.ForeColorPreview.Size = new System.Drawing.Size(81, 23);
+			this.ForeColorPreview.TabIndex = 2;
 			// 
 			// ButtonBackColor
 			// 
@@ -168,27 +176,21 @@
 			this.ButtonBackColor.UseVisualStyleBackColor = true;
 			this.ButtonBackColor.Click += new System.EventHandler(this.ButtonBackColor_Click);
 			// 
-			// ForeColorPreview
+			// ButtonForeColor
 			// 
-			this.ForeColorPreview.BackColor = System.Drawing.Color.White;
-			this.ForeColorPreview.Location = new System.Drawing.Point(113, 19);
-			this.ForeColorPreview.Name = "ForeColorPreview";
-			this.ForeColorPreview.Size = new System.Drawing.Size(81, 23);
-			this.ForeColorPreview.TabIndex = 2;
-			// 
-			// BackColorPreview
-			// 
-			this.BackColorPreview.BackColor = System.Drawing.Color.Black;
-			this.BackColorPreview.Location = new System.Drawing.Point(113, 48);
-			this.BackColorPreview.Name = "BackColorPreview";
-			this.BackColorPreview.Size = new System.Drawing.Size(81, 23);
-			this.BackColorPreview.TabIndex = 3;
+			this.ButtonForeColor.Location = new System.Drawing.Point(7, 19);
+			this.ButtonForeColor.Name = "ButtonForeColor";
+			this.ButtonForeColor.Size = new System.Drawing.Size(100, 23);
+			this.ButtonForeColor.TabIndex = 0;
+			this.ButtonForeColor.Text = "Text Color";
+			this.ButtonForeColor.UseVisualStyleBackColor = true;
+			this.ButtonForeColor.Click += new System.EventHandler(this.ButtonForeColor_Click);
 			// 
 			// SettingsForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(627, 191);
+			this.ClientSize = new System.Drawing.Size(511, 189);
 			this.Controls.Add(this.GroupBoxColor);
 			this.Controls.Add(this.GroupBoxWindow);
 			this.Controls.Add(this.GroupBoxFont);
@@ -220,7 +222,7 @@
 		private System.Windows.Forms.Panel ForeColorPreview;
 		private System.Windows.Forms.Button ButtonBackColor;
 		private System.Windows.Forms.Button ButtonForeColor;
-		private System.Windows.Forms.ColorDialog ForeColorDialog;
+		private System.Windows.Forms.ColorDialog ColorDialog;
 		private System.Windows.Forms.ColorDialog BackColorDialog;
 	}
 }

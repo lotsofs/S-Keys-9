@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Windows.Input;
 
-namespace InputF8 {
+namespace SKeys9 {
 	public class Hooks {
 		private const int WH_KEYBOARD_LL = 13;
 		private const int WH_MOUSE_LL = 14;
@@ -282,7 +282,7 @@ namespace InputF8 {
 		#endregion
 
 		#region mouseLParamsStructs
-		// totally didn't copy this from online without understanding it
+		// totally didn't copy this from the internet without understanding it
 
 		[StructLayout(LayoutKind.Sequential)]
 		private struct POINT {

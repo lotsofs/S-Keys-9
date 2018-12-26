@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace InputF8 {
+namespace SKeys9 {
 	public partial class CounterForm : Form {
 		Dictionary<string, int> _inputsCount = new Dictionary<string, int>();
 		List<string> _previousHeld = new List<string>();

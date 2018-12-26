@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace InputF8.Properties {
+namespace SKeys9.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
