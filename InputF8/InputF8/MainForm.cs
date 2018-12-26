@@ -89,7 +89,7 @@ namespace InputF8 {
 		/// </summary>
 		/// <param name="m"></param>
 		protected override void WndProc(ref Message m) {
-			if (m.Msg == 0x11) {	// WM_QUERYENDSESSION
+			if (m.Msg == 0x11) {    // WM_QUERYENDSESSION
 				ExitProgram();
 			}
 			base.WndProc(ref m);
@@ -163,14 +163,16 @@ namespace InputF8 {
 			SettingsForm form = new SettingsForm();
 			form.OnSettingsChanged += UpdateAppearance;
 			form.Show();
-			
-			//ColorDialog b = new ColorDialog();
-			//b.ShowDialog();
-			//string a = b.Color.ToArgb().ToString("X");
-			//Debug.WriteLine(a);
-			//int c = int.Parse(a, System.Globalization.NumberStyles.HexNumber);
-			//this.BackColor = System.Drawing.Color.FromArgb(Configuration.Color);
 		}
+
+		private void ToolStripMenuItemAbout_Click(object sender, EventArgs e) {
+			MessageBox.Show(String.Format(
+				"S Keys\nV{0}\n\nMade by:\nLotsOfS\ngithub.com/lotsofs\n\nSpecial thanks to:\nFatalis",
+				Application.ProductVersion
+			));
+		}
+
+		//-------
 
 		private void ToolStripMenuItemDisableDisplay_CheckedChanged(object sender, EventArgs e) {
 			if (ToolStripMenuItemDisableDisplay.Checked) {
@@ -181,14 +183,23 @@ namespace InputF8 {
 			}
 		}
 
-		private void ToolStripItemExit_Click(object sender, EventArgs e) {
-			Application.Exit();
+		private void ToolStripMenuItemCounterDisplay_Click(object sender, EventArgs e) {
+			CounterForm form = new CounterForm(_input);
+			form.Show();
 		}
+
+		//-------
 
 		private void ToolStripMenuItemTray_Click(object sender, EventArgs e) {
 			MoveToTray(true);
 		}
 
+		private void ToolStripItemExit_Click(object sender, EventArgs e) {
+			Application.Exit();
+		}
+		
 		#endregion
+
+
 	}
 }

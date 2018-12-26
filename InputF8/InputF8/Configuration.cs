@@ -17,7 +17,7 @@ namespace InputF8 {
 
 		internal static string Name = "Microsoft Sans Serif";
 		internal static float Size = 18;	// point size
-		internal static int Style = 1;  //cast as FontStyle class
+		internal static int Style = 1;  //cast as FontStyle struct
 		internal static int Color = unchecked((int)0xffffffff);
 		internal static int BackColor = unchecked((int)0xff000000);
 
@@ -39,6 +39,9 @@ namespace InputF8 {
 			}
 		}
 
+		/// <summary>
+		/// Read the settings from the file
+		/// </summary>
 		internal static void ReadSettings() {
 			// read from the file
 			if (!File.Exists(Configuration.SettingsPath)) {
@@ -48,15 +51,18 @@ namespace InputF8 {
 			foreach (string setting in settings) {
 				for (int i = 0; i < setting.Length; i++) {
 					if (setting[i] == '=') {
-						MathS.AddStringToDictionary(serializableSettings, setting.Substring(0, i), setting.Substring(i + 1));
+						S.Dictionaries.SetValue(serializableSettings, setting.Substring(0, i), setting.Substring(i + 1));
 						break;
 					}
 				}
 			}
 			LoadSettings();
-			SaveSettings();
+			SaveSettings(true);
 		}
 
+		/// <summary>
+		/// Applies loaded settings to the tool
+		/// </summary>
 		internal static void LoadSettings() {
 			foreach (string setting in serializableSettings.Keys) {
 				switch (setting) {
@@ -82,7 +88,6 @@ namespace InputF8 {
 						Configuration.BackColor |= unchecked((int)0xff000000);
 						break;
 					case "MinimizeToTray":
-						Debug.WriteLine(serializableSettings[setting]);
 						Configuration.MinimizeToTray = bool.Parse(serializableSettings[setting]);
 						break;
 					case "ExitToTray":
@@ -92,21 +97,37 @@ namespace InputF8 {
 			}
 		}
 
+		/// <summary>
+		/// Apply settings in tool
+		/// </summary>
 		internal static void ApplySettings() {
-			MathS.AddStringToDictionary(serializableSettings, "Name", Configuration.Name);
-			MathS.AddStringToDictionary(serializableSettings, "Size", Configuration.Size.ToString());
-			MathS.AddStringToDictionary(serializableSettings, "Style", Configuration.Style.ToString());
-			MathS.AddStringToDictionary(serializableSettings, "Color", Configuration.Color.ToString("X6").Substring(2));
-			MathS.AddStringToDictionary(serializableSettings, "BackColor", Configuration.BackColor.ToString("X6").Substring(2));
-			MathS.AddStringToDictionary(serializableSettings, "MinimizeToTray", Configuration.MinimizeToTray.ToString());
-			MathS.AddStringToDictionary(serializableSettings, "ExitToTray", Configuration.ExitToTray.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "Name", Configuration.Name);
+			S.Dictionaries.SetValue(serializableSettings, "Size", Configuration.Size.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "Style", Configuration.Style.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "Color", Configuration.Color.ToString("X6").Substring(2));
+			S.Dictionaries.SetValue(serializableSettings, "BackColor", Configuration.BackColor.ToString("X6").Substring(2));
+			S.Dictionaries.SetValue(serializableSettings, "MinimizeToTray", Configuration.MinimizeToTray.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "ExitToTray", Configuration.ExitToTray.ToString());
 			SaveSettings();
 		}
 
-		internal static void SaveSettings() {
-			using (StreamWriter sw = new StreamWriter(Configuration.SettingsPath)) {
-				foreach (string setting in serializableSettings.Keys) {
-					sw.WriteLine(string.Format("{0}={1}", setting, serializableSettings[setting]));
+		/// <summary>
+		/// Save settings to file
+		/// </summary>
+		/// <param name="backupSave"></param>
+		internal static void SaveSettings(bool backupSave = false) {
+			if (backupSave) {
+				using (StreamWriter sw = new StreamWriter(Configuration.SettingsPath + ".bak")) {
+					foreach (string setting in serializableSettings.Keys) {
+						sw.WriteLine(string.Format("{0}={1}", setting, serializableSettings[setting]));
+					}
+				}
+			}
+			else {
+				using (StreamWriter sw = new StreamWriter(Configuration.SettingsPath)) {
+					foreach (string setting in serializableSettings.Keys) {
+						sw.WriteLine(string.Format("{0}={1}", setting, serializableSettings[setting]));
+					}
 				}
 			}
 		}

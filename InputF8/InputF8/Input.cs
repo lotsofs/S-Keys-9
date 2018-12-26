@@ -11,13 +11,19 @@ using System.Windows.Forms;
 using System.Windows.Input;
 
 namespace InputF8 {
-	class Input {
+	public class Input {
 
 		Dictionary<int, uint> _inputsCount = new Dictionary<int, uint>();
 		Dictionary<int, TimeSpan> _inputsDuration = new Dictionary<int, TimeSpan>();
 
 		Dictionary<int, TimeSpan> _mousePos = new Dictionary<int, TimeSpan>();
 		Dictionary<int, int> _mouseInteractions = new Dictionary<int, int>();
+
+		public Dictionary<int, uint> InputsCount {
+			get {
+				return _inputsCount;
+			}
+		}
 
 		int _oldX;
 		int _oldY;
@@ -60,7 +66,7 @@ namespace InputF8 {
 		/// <param name="e"></param>
 		internal void OnMouseScroll(object sender, ScrollEventArgs e) {
 			int dictionaryEntry = (int)e.Direction + 0x97;  // hijacked some unassigned VK codes' slots
-			MathS.AddValueToDictionaryValue(_inputsCount, dictionaryEntry, 1);
+			S.Dictionaries.IncrementValue(_inputsCount, dictionaryEntry, 1);
 			AddScroll(dictionaryEntry);
 		}
 
@@ -90,7 +96,7 @@ namespace InputF8 {
 			else {
 				scrollDirectionName = ("?" + direction);
 			}
-			MathS.AddValueToDictionaryValue(_currentScrollCount, scrollDirectionName, 1);
+			S.Dictionaries.IncrementValue(_currentScrollCount, scrollDirectionName, 1);
 			_scrollRemoveTimer.Stop();
 			_scrollRemoveTimer.Start();
 			OnKeysChanged?.Invoke(this, new ChangeEventArgs(_currentlyPressed, _currentScrollCount));
@@ -124,7 +130,7 @@ namespace InputF8 {
 		/// <param name="e"></param>
 		internal void OnKeyDown(object sender, KeyEventArgs e) {
 			Stopwatches.KeyPressStart(e.Key);
-			MathS.AddValueToDictionaryValue(_inputsCount, e.Key, 1);
+			S.Dictionaries.IncrementValue(_inputsCount, e.Key, 1);
 			SetKeyAsPressed(e.Key, true);
 		}
 
@@ -135,7 +141,7 @@ namespace InputF8 {
 		/// <param name="e"></param>
 		internal void OnKeyUp(object sender, KeyEventArgs e) {
 			TimeSpan time = Stopwatches.KeyPressStop(e.Key);
-			MathS.AddValueToDictionaryValue(_inputsDuration, e.Key, time);
+			S.Dictionaries.IncrementValue(_inputsDuration, e.Key, time);
 			SetKeyAsPressed(e.Key, false);
 		}
 
@@ -146,9 +152,9 @@ namespace InputF8 {
 		/// <param name="e"></param>
 		internal void OnMouseDown(object sender, MouseEventArgs e) {
 			Stopwatches.KeyPressStart((int)e.Button);
-			MathS.AddValueToDictionaryValue(_inputsCount, (int)e.Button, 1);
-			int coordsInt = MathS.CombineInt(e.X / 10, e.Y / 10);
-			MathS.AddValueToDictionaryValue(_mouseInteractions, coordsInt, 1);
+			S.Dictionaries.IncrementValue(_inputsCount, (int)e.Button, 1);
+			int coordsInt = S.Bits.CombineInt(e.X / 10, e.Y / 10);
+			S.Dictionaries.IncrementValue(_mouseInteractions, coordsInt, 1);
 			SetKeyAsPressed((int)e.Button, true);
 		}
 
@@ -159,7 +165,7 @@ namespace InputF8 {
 		/// <param name="e"></param>
 		internal void OnMouseUp(object sender, MouseEventArgs e) {
 			TimeSpan time = Stopwatches.KeyPressStop((int)e.Button);
-			MathS.AddValueToDictionaryValue(_inputsDuration, (int)e.Button, time);
+			S.Dictionaries.IncrementValue(_inputsDuration, (int)e.Button, time);
 			//int coordsInt = MathS.CombineInt(e.X, e.Y);
 			//MathS.AddValueToDictionaryValue(_mouseInteractions, coordsInt, 1);
 			SetKeyAsPressed((int)e.Button, false);
@@ -213,18 +219,18 @@ namespace InputF8 {
 		/// </summary>
 		/// <param name="e"></param>
 		void MouseMoveProcessing(MoveEventArgs e) {
-			MathS.AddValueToDictionaryValue(_inputsDuration, 0x9B, TimeSpan.FromTicks(1)); // hijacked an unassigned VK code's slot
-			double distance = MathS.Distance2DCoords(e.X, e.Y, _oldX, _oldY);
+			S.Dictionaries.IncrementValue(_inputsDuration, 0x9B, TimeSpan.FromTicks(1)); // hijacked an unassigned VK code's slot
+			double distance = S.Math.Distance2D(e.X, e.Y, _oldX, _oldY);
 			uint centiDistance = (uint)(distance * 100); // calculating distance to the centipixel, should be accurate enough
-			MathS.AddValueToDictionaryValue(_inputsCount, 0x9B, centiDistance); // hijacked an unassigned VK code's slot
+			S.Dictionaries.IncrementValue(_inputsCount, 0x9B, centiDistance); // hijacked an unassigned VK code's slot
 			
 			// if value has overflowed, add one to a counter that counts overflows
 			if (_inputsCount[0x9B] < centiDistance) {
-				MathS.AddValueToDictionaryValue(_inputsCount, 0x9C, 1); // hijacked an unassigned VK code's slot
+				S.Dictionaries.IncrementValue(_inputsCount, 0x9C, 1); // hijacked an unassigned VK code's slot
 			}
 
-			int coordsInt = MathS.CombineInt(e.X / 100, e.X / 100);
-			MathS.AddValueToDictionaryValue(_mousePos, coordsInt, Stopwatches.MouseStop());	// TODO: This adds the new position of the mouse when really it should be the previous position added
+			int coordsInt = S.Bits.CombineInt(e.X / 100, e.X / 100);
+			S.Dictionaries.IncrementValue(_mousePos, coordsInt, Stopwatches.MouseStop());	// TODO: This adds the new position of the mouse when really it should be the previous position added
 			Stopwatches.MouseStart();
 
 			_oldX = e.X;
@@ -265,26 +271,30 @@ namespace InputF8 {
 		/// write data to file
 		/// </summary>
 		public void SaveFiles() {
-			//await Task.Delay(1);
-			using (StreamWriter sw = new StreamWriter(Configuration.CountPath)) {
-				for (int key = 0; key <= 0xFF; key++) {
-					sw.WriteLine(string.Format("{0:X2} {1}", key, _inputsCount[key]));
+			try {
+				using (StreamWriter sw = new StreamWriter(Configuration.CountPath)) {
+					for (int key = 0; key <= 0xFF; key++) {
+						sw.WriteLine(string.Format("{0:X2} {1}", key, _inputsCount[key]));
+					}
+				}
+				using (StreamWriter sw = new StreamWriter(Configuration.DurationPath)) {
+					for (int key = 0; key <= 0xFF; key++) {
+						sw.WriteLine(string.Format("{0:X2} {1}", key, _inputsDuration[key]));
+					}
+				}
+				using (StreamWriter sw = new StreamWriter(Configuration.MousePath)) {
+					foreach (int i in _mousePos.Keys) {
+						sw.WriteLine(string.Format("{0:X8} {1:X}", i, _mousePos[i].Ticks));
+					}
+				}
+				using (StreamWriter sw = new StreamWriter(Configuration.InteractionPath)) {
+					foreach (int i in _mouseInteractions.Keys) {
+						sw.WriteLine(string.Format("{0:X8} {1:X}", i, _mouseInteractions[i]));
+					}
 				}
 			}
-			using (StreamWriter sw = new StreamWriter(Configuration.DurationPath)) {
-				for (int key = 0; key <= 0xFF; key++) {
-					sw.WriteLine(string.Format("{0:X2} {1}", key, _inputsDuration[key]));
-				}
-			}
-			using (StreamWriter sw = new StreamWriter(Configuration.MousePath)) {
-				foreach (int i in _mousePos.Keys) {
-					sw.WriteLine(string.Format("{0:X8} {1:X}", i, _mousePos[i].Ticks));
-				}
-			}
-			using (StreamWriter sw = new StreamWriter(Configuration.InteractionPath)) {
-				foreach (int i in _mouseInteractions.Keys) {
-					sw.WriteLine(string.Format("{0:X8} {1:X}", i, _mouseInteractions[i]));
-				}
+			catch (InvalidOperationException) {
+				Debug.WriteLine("Collection modified, cancelling save");
 			}
 		}
 
@@ -297,12 +307,12 @@ namespace InputF8 {
 				foreach (string countText in countTexts) {
 					int key = int.Parse(countText.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
 					uint count = uint.Parse(countText.Substring(3));
-					MathS.AddValueToDictionaryValue(_inputsCount, key, count);
+					S.Dictionaries.IncrementValue(_inputsCount, key, count);
 				}
 			}
 			for (int key = 0; key <= 0xFF; key++) {
 				if (!_inputsCount.ContainsKey(key)) {
-					MathS.AddValueToDictionaryValue(_inputsCount, key, 0);
+					S.Dictionaries.IncrementValue(_inputsCount, key, 0);
 				}
 			}
 
@@ -311,12 +321,12 @@ namespace InputF8 {
 				foreach (string durationText in durationTexts) {
 					int key = int.Parse(durationText.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
 					TimeSpan duration = TimeSpan.Parse(durationText.Substring(3));
-					MathS.AddValueToDictionaryValue(_inputsDuration, key, duration);
+					S.Dictionaries.IncrementValue(_inputsDuration, key, duration);
 				}
 			}
 			for (int key = 0; key <= 0xFF; key++) {
 				if (!_inputsDuration.ContainsKey(key)) {
-					MathS.AddValueToDictionaryValue(_inputsDuration, key, TimeSpan.Zero);
+					S.Dictionaries.IncrementValue(_inputsDuration, key, TimeSpan.Zero);
 				}
 			}
 
@@ -325,7 +335,7 @@ namespace InputF8 {
 				foreach (string mouseText in mouseTexts) {
 					int coord = int.Parse(mouseText.Substring(0, 8), System.Globalization.NumberStyles.HexNumber);
 					TimeSpan duration = TimeSpan.FromTicks(long.Parse(mouseText.Substring(9), System.Globalization.NumberStyles.HexNumber));
-					MathS.AddValueToDictionaryValue(_mousePos, coord, duration);
+					S.Dictionaries.IncrementValue(_mousePos, coord, duration);
 				}
 			}
 
@@ -334,7 +344,7 @@ namespace InputF8 {
 				foreach (string mouseText in mouseTexts) {
 					int coord = int.Parse(mouseText.Substring(0, 8), System.Globalization.NumberStyles.HexNumber);
 					int count = int.Parse(mouseText.Substring(9), System.Globalization.NumberStyles.HexNumber);
-					MathS.AddValueToDictionaryValue(_mouseInteractions, coord, count);
+					S.Dictionaries.IncrementValue(_mouseInteractions, coord, count);
 				}
 			}
 
