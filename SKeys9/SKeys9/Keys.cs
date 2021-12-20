@@ -3,6 +3,7 @@
 namespace SKeys9 {
 	public static class Keys {
 		public static Dictionary<int, string> KeyNames = new Dictionary<int, string> {
+			//0
 			{ 0x1, "LMB" },
 			{ 0x2, "RMB" }, 
 			//3

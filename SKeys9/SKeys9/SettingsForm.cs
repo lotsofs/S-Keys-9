@@ -47,11 +47,25 @@ namespace SKeys9 {
 		/// </summary>
 		/// <param name="color">Color the prompt shows by default</param>
 		/// <returns></returns>
-		Color SelectColor(Color color) {
+		Color SelectFontColor(Color color) {
 			ColorDialog.Color = color;
 			ColorDialog.ShowDialog();
 			color = ColorDialog.Color;
 			Configuration.Color = color.ToArgb();
+			OnSettingsChanged?.Invoke(this, new EventArgs());
+			return color;
+		}
+
+		/// <summary>
+		/// Open a prompt to select a color
+		/// </summary>
+		/// <param name="color">Color the prompt shows by default</param>
+		/// <returns></returns>
+		Color SelectBackColor(Color color) {
+			ColorDialog.Color = color;
+			ColorDialog.ShowDialog();
+			color = ColorDialog.Color;
+			Configuration.BackColor = color.ToArgb();
 			OnSettingsChanged?.Invoke(this, new EventArgs());
 			return color;
 		}
@@ -63,12 +77,12 @@ namespace SKeys9 {
 		}
 
 		private void ButtonForeColor_Click(object sender, EventArgs e) {
-			_foreColor = SelectColor(_foreColor);
+			_foreColor = SelectFontColor(_foreColor);
 			ForeColorPreview.BackColor = _foreColor;
 		}
 
 		private void ButtonBackColor_Click(object sender, EventArgs e) {
-			_backColor = SelectColor(_backColor);
+			_backColor = SelectBackColor(_backColor);
 			BackColorPreview.BackColor = _backColor;
 		}
 
