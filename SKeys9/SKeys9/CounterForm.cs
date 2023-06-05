@@ -18,6 +18,19 @@ namespace SKeys9 {
 		public CounterForm(Input input) {
 			InitializeComponent();
 			input.OnKeysChanged += ChangeCount;
+			UpdateAppearance();
+		}
+
+		/// <summary>
+		/// updates appearance based on user's selected settings
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		public void UpdateAppearance(object sender = null, EventArgs e = null) {
+			Font font = new Font(Configuration.CounterName, Configuration.CounterSize, (FontStyle)Configuration.CounterStyle);
+			Display.Font = font;
+			Display.ForeColor = Color.FromArgb(Configuration.CounterColor);
+			this.BackColor = Color.FromArgb(Configuration.CounterBackColor);
 		}
 
 		/// <summary>

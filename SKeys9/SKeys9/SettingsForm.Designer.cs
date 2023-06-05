@@ -41,13 +41,21 @@
 			this.ColorDialog = new System.Windows.Forms.ColorDialog();
 			this.BackColorDialog = new System.Windows.Forms.ColorDialog();
 			this.GroupBoxFeatures = new System.Windows.Forms.GroupBox();
-			this.LogButtonsCheckbox = new System.Windows.Forms.CheckBox();
-			this.LogClicksCheckbox = new System.Windows.Forms.CheckBox();
 			this.LogMovementCheckbox = new System.Windows.Forms.CheckBox();
+			this.LogClicksCheckbox = new System.Windows.Forms.CheckBox();
+			this.LogButtonsCheckbox = new System.Windows.Forms.CheckBox();
+			this.groupBoxCounter = new System.Windows.Forms.GroupBox();
+			this.buttonCounterFont = new System.Windows.Forms.Button();
+			this.labelCounterFont = new System.Windows.Forms.Label();
+			this.panelCounterBGCol = new System.Windows.Forms.Panel();
+			this.panelCounterTextCol = new System.Windows.Forms.Panel();
+			this.buttonCounterBGCol = new System.Windows.Forms.Button();
+			this.buttonCounterTextCol = new System.Windows.Forms.Button();
 			this.GroupBoxFont.SuspendLayout();
 			this.GroupBoxWindow.SuspendLayout();
 			this.GroupBoxColor.SuspendLayout();
 			this.GroupBoxFeatures.SuspendLayout();
+			this.groupBoxCounter.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// MinimizeToTrayCheckBox
@@ -203,16 +211,16 @@
 			this.GroupBoxFeatures.TabStop = false;
 			this.GroupBoxFeatures.Text = "Logging";
 			// 
-			// LogButtonsCheckbox
+			// LogMovementCheckbox
 			// 
-			this.LogButtonsCheckbox.AutoSize = true;
-			this.LogButtonsCheckbox.Location = new System.Drawing.Point(6, 19);
-			this.LogButtonsCheckbox.Name = "LogButtonsCheckbox";
-			this.LogButtonsCheckbox.Size = new System.Drawing.Size(97, 17);
-			this.LogButtonsCheckbox.TabIndex = 4;
-			this.LogButtonsCheckbox.Text = "Button Presses";
-			this.LogButtonsCheckbox.UseVisualStyleBackColor = true;
-			this.LogButtonsCheckbox.CheckedChanged += new System.EventHandler(this.LogButtonsCheckbox_CheckedChanged);
+			this.LogMovementCheckbox.AutoSize = true;
+			this.LogMovementCheckbox.Location = new System.Drawing.Point(6, 65);
+			this.LogMovementCheckbox.Name = "LogMovementCheckbox";
+			this.LogMovementCheckbox.Size = new System.Drawing.Size(111, 17);
+			this.LogMovementCheckbox.TabIndex = 6;
+			this.LogMovementCheckbox.Text = "Mouse Movement";
+			this.LogMovementCheckbox.UseVisualStyleBackColor = true;
+			this.LogMovementCheckbox.CheckedChanged += new System.EventHandler(this.LogMovementCheckbox_CheckedChanged);
 			// 
 			// LogClicksCheckbox
 			// 
@@ -225,22 +233,94 @@
 			this.LogClicksCheckbox.UseVisualStyleBackColor = true;
 			this.LogClicksCheckbox.CheckedChanged += new System.EventHandler(this.LogClicksCheckbox_CheckedChanged);
 			// 
-			// LogMovementCheckbox
+			// LogButtonsCheckbox
 			// 
-			this.LogMovementCheckbox.AutoSize = true;
-			this.LogMovementCheckbox.Location = new System.Drawing.Point(6, 65);
-			this.LogMovementCheckbox.Name = "LogMovementCheckbox";
-			this.LogMovementCheckbox.Size = new System.Drawing.Size(111, 17);
-			this.LogMovementCheckbox.TabIndex = 6;
-			this.LogMovementCheckbox.Text = "Mouse Movement";
-			this.LogMovementCheckbox.UseVisualStyleBackColor = true;
-			this.LogMovementCheckbox.CheckedChanged += new System.EventHandler(this.LogMovementCheckbox_CheckedChanged);
+			this.LogButtonsCheckbox.AutoSize = true;
+			this.LogButtonsCheckbox.Location = new System.Drawing.Point(6, 19);
+			this.LogButtonsCheckbox.Name = "LogButtonsCheckbox";
+			this.LogButtonsCheckbox.Size = new System.Drawing.Size(97, 17);
+			this.LogButtonsCheckbox.TabIndex = 4;
+			this.LogButtonsCheckbox.Text = "Button Presses";
+			this.LogButtonsCheckbox.UseVisualStyleBackColor = true;
+			this.LogButtonsCheckbox.CheckedChanged += new System.EventHandler(this.LogButtonsCheckbox_CheckedChanged);
+			// 
+			// groupBoxCounter
+			// 
+			this.groupBoxCounter.Controls.Add(this.panelCounterBGCol);
+			this.groupBoxCounter.Controls.Add(this.labelCounterFont);
+			this.groupBoxCounter.Controls.Add(this.panelCounterTextCol);
+			this.groupBoxCounter.Controls.Add(this.buttonCounterFont);
+			this.groupBoxCounter.Controls.Add(this.buttonCounterBGCol);
+			this.groupBoxCounter.Controls.Add(this.buttonCounterTextCol);
+			this.groupBoxCounter.Location = new System.Drawing.Point(12, 196);
+			this.groupBoxCounter.Name = "groupBoxCounter";
+			this.groupBoxCounter.Size = new System.Drawing.Size(406, 78);
+			this.groupBoxCounter.TabIndex = 12;
+			this.groupBoxCounter.TabStop = false;
+			this.groupBoxCounter.Text = "Counter Display";
+			// 
+			// buttonCounterFont
+			// 
+			this.buttonCounterFont.Location = new System.Drawing.Point(6, 19);
+			this.buttonCounterFont.Name = "buttonCounterFont";
+			this.buttonCounterFont.Size = new System.Drawing.Size(188, 23);
+			this.buttonCounterFont.TabIndex = 8;
+			this.buttonCounterFont.Text = "Change Font";
+			this.buttonCounterFont.UseVisualStyleBackColor = true;
+			this.buttonCounterFont.Click += new System.EventHandler(this.buttonCounterFont_Click);
+			// 
+			// labelCounterFont
+			// 
+			this.labelCounterFont.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+			this.labelCounterFont.Location = new System.Drawing.Point(6, 45);
+			this.labelCounterFont.Name = "labelCounterFont";
+			this.labelCounterFont.Size = new System.Drawing.Size(188, 26);
+			this.labelCounterFont.TabIndex = 8;
+			this.labelCounterFont.Text = "Font Name xxpt Style";
+			// 
+			// panelCounterBGCol
+			// 
+			this.panelCounterBGCol.BackColor = System.Drawing.Color.Black;
+			this.panelCounterBGCol.Location = new System.Drawing.Point(319, 48);
+			this.panelCounterBGCol.Name = "panelCounterBGCol";
+			this.panelCounterBGCol.Size = new System.Drawing.Size(81, 23);
+			this.panelCounterBGCol.TabIndex = 7;
+			// 
+			// panelCounterTextCol
+			// 
+			this.panelCounterTextCol.BackColor = System.Drawing.Color.White;
+			this.panelCounterTextCol.Location = new System.Drawing.Point(319, 19);
+			this.panelCounterTextCol.Name = "panelCounterTextCol";
+			this.panelCounterTextCol.Size = new System.Drawing.Size(81, 23);
+			this.panelCounterTextCol.TabIndex = 6;
+			// 
+			// buttonCounterBGCol
+			// 
+			this.buttonCounterBGCol.Location = new System.Drawing.Point(213, 48);
+			this.buttonCounterBGCol.Name = "buttonCounterBGCol";
+			this.buttonCounterBGCol.Size = new System.Drawing.Size(100, 23);
+			this.buttonCounterBGCol.TabIndex = 5;
+			this.buttonCounterBGCol.Text = "Background Color";
+			this.buttonCounterBGCol.UseVisualStyleBackColor = true;
+			this.buttonCounterBGCol.Click += new System.EventHandler(this.buttonCounterBGCol_Click);
+			// 
+			// buttonCounterTextCol
+			// 
+			this.buttonCounterTextCol.Location = new System.Drawing.Point(213, 19);
+			this.buttonCounterTextCol.Name = "buttonCounterTextCol";
+			this.buttonCounterTextCol.Size = new System.Drawing.Size(100, 23);
+			this.buttonCounterTextCol.TabIndex = 4;
+			this.buttonCounterTextCol.Text = "Text Color";
+			this.buttonCounterTextCol.UseVisualStyleBackColor = true;
+			this.buttonCounterTextCol.Click += new System.EventHandler(this.buttonCounterTextCol_Click);
 			// 
 			// SettingsForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(511, 199);
+			this.ClientSize = new System.Drawing.Size(511, 285);
+			this.Controls.Add(this.groupBoxCounter);
 			this.Controls.Add(this.GroupBoxFeatures);
 			this.Controls.Add(this.GroupBoxColor);
 			this.Controls.Add(this.GroupBoxWindow);
@@ -256,6 +336,7 @@
 			this.GroupBoxColor.ResumeLayout(false);
 			this.GroupBoxFeatures.ResumeLayout(false);
 			this.GroupBoxFeatures.PerformLayout();
+			this.groupBoxCounter.ResumeLayout(false);
 			this.ResumeLayout(false);
 
 		}
@@ -281,5 +362,12 @@
 		private System.Windows.Forms.CheckBox LogMovementCheckbox;
 		private System.Windows.Forms.CheckBox LogClicksCheckbox;
 		private System.Windows.Forms.CheckBox LogButtonsCheckbox;
+		private System.Windows.Forms.GroupBox groupBoxCounter;
+		private System.Windows.Forms.Panel panelCounterBGCol;
+		private System.Windows.Forms.Label labelCounterFont;
+		private System.Windows.Forms.Panel panelCounterTextCol;
+		private System.Windows.Forms.Button buttonCounterFont;
+		private System.Windows.Forms.Button buttonCounterBGCol;
+		private System.Windows.Forms.Button buttonCounterTextCol;
 	}
 }

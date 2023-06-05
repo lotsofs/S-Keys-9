@@ -6,8 +6,11 @@ namespace SKeys9 {
 	public partial class SettingsForm : Form {
 		public event EventHandler OnSettingsChanged;
 		Font _font;
+		Font _counterFont;
 		Color _foreColor;
 		Color _backColor;
+		Color _counterForeColor;
+		Color _counterBackColor;
 
 		public SettingsForm() {
 			InitializeComponent();
@@ -27,12 +30,21 @@ namespace SKeys9 {
 			ForeColorPreview.BackColor = _foreColor;
 			_backColor = Color.FromArgb(Configuration.BackColor);
 			BackColorPreview.BackColor = _backColor;
+
+			_counterFont = new Font(Configuration.CounterName, Configuration.CounterSize, (FontStyle)Configuration.CounterStyle);
+			labelCounterFont.Text = String.Format("{0} {2}pt {1}", _counterFont.Name, _counterFont.Style, _counterFont.Size);
+
+			_counterForeColor = Color.FromArgb(Configuration.CounterColor);
+			panelCounterTextCol.BackColor = _counterForeColor;
+			_counterBackColor = Color.FromArgb(Configuration.CounterBackColor);
+			panelCounterBGCol.BackColor = _counterBackColor;
 		}
 
 		/// <summary>
 		/// Opens a prompt to select a font and sets the font
 		/// </summary>
 		void SelectFont() {
+			FontDialog.Font = _font;
 			FontDialog.ShowDialog();
 			_font = FontDialog.Font;
 			Configuration.Name = _font.Name;
@@ -42,18 +54,15 @@ namespace SKeys9 {
 			OnSettingsChanged?.Invoke(this, new EventArgs());
 		}
 
-		/// <summary>
-		/// Open a prompt to select a color
-		/// </summary>
-		/// <param name="color">Color the prompt shows by default</param>
-		/// <returns></returns>
-		Color SelectFontColor(Color color) {
-			ColorDialog.Color = color;
-			ColorDialog.ShowDialog();
-			color = ColorDialog.Color;
-			Configuration.Color = color.ToArgb();
+		void SelectCounterFormFont() {
+			FontDialog.Font = _counterFont;
+			FontDialog.ShowDialog();
+			_counterFont = FontDialog.Font;
+			Configuration.CounterName = _counterFont.Name;
+			Configuration.CounterStyle = (int)_counterFont.Style;
+			Configuration.CounterSize = _counterFont.Size;
+			labelCounterFont.Text = String.Format("{0} {2}pt {1}", _counterFont.Name, _counterFont.Style, _counterFont.Size);
 			OnSettingsChanged?.Invoke(this, new EventArgs());
-			return color;
 		}
 
 		/// <summary>
@@ -61,12 +70,10 @@ namespace SKeys9 {
 		/// </summary>
 		/// <param name="color">Color the prompt shows by default</param>
 		/// <returns></returns>
-		Color SelectBackColor(Color color) {
+		Color SelectColor(Color color) {
 			ColorDialog.Color = color;
 			ColorDialog.ShowDialog();
 			color = ColorDialog.Color;
-			Configuration.BackColor = color.ToArgb();
-			OnSettingsChanged?.Invoke(this, new EventArgs());
 			return color;
 		}
 
@@ -76,14 +83,36 @@ namespace SKeys9 {
 			SelectFont();
 		}
 
+		private void buttonCounterFont_Click(object sender, EventArgs e) {
+			SelectCounterFormFont();
+		}
+
 		private void ButtonForeColor_Click(object sender, EventArgs e) {
-			_foreColor = SelectFontColor(_foreColor);
+			_foreColor = SelectColor(_foreColor);
+			Configuration.Color = _foreColor.ToArgb();
 			ForeColorPreview.BackColor = _foreColor;
+			OnSettingsChanged?.Invoke(this, new EventArgs());
 		}
 
 		private void ButtonBackColor_Click(object sender, EventArgs e) {
-			_backColor = SelectBackColor(_backColor);
+			_backColor = SelectColor(_backColor);
+			Configuration.BackColor = _backColor.ToArgb();
 			BackColorPreview.BackColor = _backColor;
+			OnSettingsChanged?.Invoke(this, new EventArgs());
+		}
+
+		private void buttonCounterTextCol_Click(object sender, EventArgs e) {
+			_counterForeColor = SelectColor(_counterForeColor);
+			Configuration.CounterColor = _counterForeColor.ToArgb();
+			panelCounterTextCol.BackColor = _counterForeColor;
+			OnSettingsChanged?.Invoke(this, new EventArgs());
+		}
+
+		private void buttonCounterBGCol_Click(object sender, EventArgs e) {
+			_counterBackColor = SelectColor(_counterBackColor);
+			Configuration.CounterBackColor = _counterBackColor.ToArgb();
+			panelCounterBGCol.BackColor = _counterBackColor;
+			OnSettingsChanged?.Invoke(this, new EventArgs());
 		}
 
 		private void MinimizeToTrayCheckBox_CheckedChanged(object sender, EventArgs e) {

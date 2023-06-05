@@ -60,7 +60,7 @@
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.Color.Black;
-			this.ClientSize = new System.Drawing.Size(147, 490);
+			this.ClientSize = new System.Drawing.Size(292, 1007);
 			this.ContextMenuStrip = this.ContextMenuStripCounter;
 			this.Controls.Add(this.Display);
 			this.Name = "CounterForm";

@@ -25,6 +25,13 @@ namespace SKeys9 {
 		internal static int Color = unchecked((int)0xffffffff);
 		internal static int BackColor = unchecked((int)0xff000000);
 
+		internal static string CounterName = "Microsoft Sans Serif";
+		internal static float CounterSize = 10;    // point size
+		internal static int CounterStyle = 1;  //cast as FontStyle struct
+		internal static int CounterColor = unchecked((int)0xffffffff);
+		internal static int CounterBackColor = unchecked((int)0xff000000);
+
+
 		static Dictionary<string, string> serializableSettings = new Dictionary<string, string>();
 
 		/// <summary>
@@ -77,7 +84,7 @@ namespace SKeys9 {
 						Configuration.Name = serializableSettings[setting];
 						break;
 					case "Size":
-						Configuration.Size = int.Parse(serializableSettings[setting]);
+						Configuration.Size = float.Parse(serializableSettings[setting]);
 						break;
 					case "Style":
 						Configuration.Style = int.Parse(serializableSettings[setting]);
@@ -91,6 +98,25 @@ namespace SKeys9 {
 						int rIndexB = serializableSettings[setting].Length - 6;
 						Configuration.BackColor = unchecked(int.Parse(serializableSettings[setting].Substring(rIndexB), System.Globalization.NumberStyles.HexNumber));
 						Configuration.BackColor |= unchecked((int)0xff000000);
+						break;
+					case "CounterName":
+						Configuration.CounterName = serializableSettings[setting];
+						break;
+					case "CounterSize":
+						Configuration.CounterSize = float.Parse(serializableSettings[setting]);
+						break;
+					case "CounterStyle":
+						Configuration.CounterStyle = int.Parse(serializableSettings[setting]);
+						break;
+					case "CounterColor":
+						int rIndexC = serializableSettings[setting].Length - 6;
+						Configuration.CounterColor = unchecked(int.Parse(serializableSettings[setting].Substring(rIndexC), System.Globalization.NumberStyles.HexNumber));
+						Configuration.CounterColor |= unchecked((int)0xff000000);
+						break;
+					case "CounterBackColor":
+						int rIndexCB = serializableSettings[setting].Length - 6;
+						Configuration.CounterBackColor = unchecked(int.Parse(serializableSettings[setting].Substring(rIndexCB), System.Globalization.NumberStyles.HexNumber));
+						Configuration.CounterBackColor |= unchecked((int)0xff000000);
 						break;
 					case "MinimizeToTray":
 						Configuration.MinimizeToTray = bool.Parse(serializableSettings[setting]);
@@ -120,6 +146,11 @@ namespace SKeys9 {
 			S.Dictionaries.SetValue(serializableSettings, "Style", Configuration.Style.ToString());
 			S.Dictionaries.SetValue(serializableSettings, "Color", Configuration.Color.ToString("X6").Substring(2));
 			S.Dictionaries.SetValue(serializableSettings, "BackColor", Configuration.BackColor.ToString("X6").Substring(2));
+			S.Dictionaries.SetValue(serializableSettings, "CounterName", Configuration.CounterName);
+			S.Dictionaries.SetValue(serializableSettings, "CounterSize", Configuration.CounterSize.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "CounterStyle", Configuration.CounterStyle.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "CounterColor", Configuration.CounterColor.ToString("X6").Substring(2));
+			S.Dictionaries.SetValue(serializableSettings, "CounterBackColor", Configuration.CounterBackColor.ToString("X6").Substring(2));
 			S.Dictionaries.SetValue(serializableSettings, "MinimizeToTray", Configuration.MinimizeToTray.ToString());
 			S.Dictionaries.SetValue(serializableSettings, "ExitToTray", Configuration.ExitToTray.ToString());
 			S.Dictionaries.SetValue(serializableSettings, "LogButtons", Configuration.LogButtons.ToString());

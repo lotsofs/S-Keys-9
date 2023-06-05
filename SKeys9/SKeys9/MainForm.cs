@@ -8,6 +8,9 @@ namespace SKeys9 {
 		Hooks _hooks;
 		Input _input;
 
+		CounterForm _counterForm;
+		SettingsForm _settingsForm;
+
 		public MainForm() {
 			InitializeComponent();
 			Configuration.SetDirectories();
@@ -160,14 +163,18 @@ namespace SKeys9 {
 		#region toolstrip menu items
 
 		private void ToolStripMenuItemSettings_Click(object sender, EventArgs e) {
-			SettingsForm form = new SettingsForm();
-			form.OnSettingsChanged += UpdateAppearance;
-			form.Show();
+			if (_settingsForm != null && _settingsForm.IsHandleCreated) return;
+			_settingsForm = new SettingsForm();
+			_settingsForm.OnSettingsChanged += UpdateAppearance;
+			if (_counterForm != null && _counterForm.IsHandleCreated) {
+				_settingsForm.OnSettingsChanged += _counterForm.UpdateAppearance;
+			}
+			_settingsForm.Show();
 		}
 
 		private void ToolStripMenuItemAbout_Click(object sender, EventArgs e) {
 			MessageBox.Show(String.Format(
-				"S Keys\nV{0}\n\nMade by:\nLotsOfS\ngithub.com/lotsofs\n\nSpecial thanks to:\nFatalis",
+				"S Keys\nV{0}\n\nMade and maintained by:\nLotsOfS\ngithub.com/lotsofs\n\nSpecial thanks to:\nFatalis",
 				Application.ProductVersion
 			));
 		}
@@ -184,8 +191,12 @@ namespace SKeys9 {
 		}
 
 		private void ToolStripMenuItemCounterDisplay_Click(object sender, EventArgs e) {
-			CounterForm form = new CounterForm(_input);
-			form.Show();
+			if (_counterForm != null && _counterForm.IsHandleCreated ) return;
+			_counterForm = new CounterForm(_input);
+			if (_settingsForm != null && _settingsForm.IsHandleCreated) {
+				_settingsForm.OnSettingsChanged += _counterForm.UpdateAppearance;
+			}
+			_counterForm.Show();
 		}
 
 		//-------

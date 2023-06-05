@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -6,22 +7,22 @@ using System.IO;
 namespace SKeys9 {
 	public static class Keys {
 		public static Dictionary<int, string> KeyNames = new Dictionary<int, string> {
-			//0
+			//0 // -
 			{ 0x1, "LMB" },
 			{ 0x2, "RMB" }, 
-			//3
+			//3 // Control Break Processing
 			{ 0x4, "MMB" },
 			{ 0x5, "XMB1" }, 
 			{ 0x6, "XMB2" },
-			//7
+			//7 // Undefined
 			{ 0x8, "Backspace" }, 
 			{ 0x9, "Tab" },
-			//A
-			//B
+			//A // Reserved
+			//B // Reserved 
 			{ 0xC, "Clear" },
 			{ 0xD, "Enter" },
-			//E
-			//F
+			//E // Undefined
+			//F // Undefined
 
 			{ 0x10, "Shift" },
 			{ 0x11, "Ctrl" },
@@ -29,11 +30,11 @@ namespace SKeys9 {
 			{ 0x13, "Pause" }, 
 			{ 0x14, "CapsLk" },
 			{ 0x15, "Kana/HangulMode" },
-			//16
+			//16 // IME On
 			{ 0x17, "JunjaMode" },
 			{ 0x18, "FinalMode" },
 			{ 0x19, "Hanja/KanjiMode" },
-			//1A
+			//1A // IME Off
 			{ 0x1B, "Esc" },
 			{ 0x1C, "Convert" },
 			{ 0x1D, "NonConvert" },
@@ -67,14 +68,14 @@ namespace SKeys9 {
 			{ 0x37, "7" },
 			{ 0x38, "8" }, 
 			{ 0x39, "9" }, 
-			//3A
-			//3B
-			//3C
-			//3D
-			//3E
-			//3F
+			//3A // Undefined
+			//3B // Undefined
+			//3C // Undefined
+			//3D // Undefined
+			//3E // Undefined
+			//3F // Undefined
 
-			//40
+			//40 // Undefined
 			{ 0x41, "A" },
 			{ 0x42, "B" }, 
 			{ 0x43, "C" }, 
@@ -105,7 +106,7 @@ namespace SKeys9 {
 			{ 0x5B, "LWin" }, 
 			{ 0x5C, "RWin" },
 			{ 0x5D, "Apps" },
-			//5E
+			//5E // Reserved
 			{ 0x5F, "Sleep" },
 
 			{ 0x60, "Num0" }, 
@@ -150,31 +151,31 @@ namespace SKeys9 {
 			{ 0X85, "F22" }, 
 			{ 0X86, "F23" }, 
 			{ 0X87, "F24" }, 
-			//88
-			//89
-			//8A
-			//8B
-			//8C
-			//8D
-			//8E
-			//8F
+			//88 // Unassigned
+			//89 // Unassigned
+			//8A // Unassigned
+			//8B // Unassigned
+			//8C // Unassigned
+			//8D // Unassigned
+			//8E // Unassigned
+			//8F // Unassigned
 
 			{ 0x90, "NumLk" },
 			{ 0x91, "ScrLk" },
-			//92
-			//93
-			//94
-			//95
-			//96
-			{ 0x97, "ScrUp" }, // Hijacked
-			{ 0x98, "ScrDn" }, // Hijacked
-			{ 0x99, "ScrLeft" }, // Hijacked
-			{ 0x9A, "ScrRight" }, // Hijacked
-			{ 0x9B, "MouseMovement" }, // Hijacked
-			{ 0x9C, "MouseMovOverflow" }, // Hijacked
-			{ 0x9D, "DbgHookTimeout" }, // Hijacked
-			//9E
-			//9F
+			//92 // OEM specific
+			//93 // OEM specific
+			//94 // OEM specific
+			//95 // OEM specific
+			//96 // OEM specific
+			{ 0x97, "ScrUp" }, // Unassigned, so using it as custom
+			{ 0x98, "ScrDn" }, // Unassigned, so using it as custom
+			{ 0x99, "ScrLeft" }, // Unassigned, so using it as custom
+			{ 0x9A, "ScrRight" }, // Unassigned, so using it as custom
+			{ 0x9B, "MouseMovement" }, // Unassigned, so using it as custom
+			{ 0x9C, "MouseMovOverflow" }, // Unassigned, so using it as custom
+			{ 0x9D, "DbgHookTimeout" }, // Unassigned, so using it as custom
+			//9E // Unassigned
+			//9F // Unassigned
 
 			{ 0xA0, "LShift" },
 			{ 0xA1, "RShift" },
@@ -201,8 +202,8 @@ namespace SKeys9 {
 			{ 0xB5, "SelectMedia" },
 			{ 0xB6, "LaunchApplication1" },
 			{ 0xB7, "LaunchApplication2" },
-			//B8
-			//B9
+			//B8 // Reserved
+			//B9 // Reserved
 			{ 0xBA, ";" },
 			{ 0xBB, "=" },
 			{ 0xBC, "," },
@@ -211,76 +212,82 @@ namespace SKeys9 {
 			{ 0xBF, "/" },
 
 			{ 0xC0, "~" },
-			//C1
-			//C2
-			//C3
-			//C4
-			//C5
-			//C6
-			//C7
-			//C8
-			//C9
-			//CA
-			//CB
-			//CC
-			//CD
-			//CE
-			//CF
+			//C1 // Reserved
+			//C2 // Reserved
+			//C3 // Reserved
+			//C4 // Reserved
+			//C5 // Reserved
+			//C6 // Reserved
+			//C7 // Reserved
+			//C8 // Reserved
+			//C9 // Reserved
+			//CA // Reserved
+			//CB // Reserved
+			//CC // Reserved
+			//CD // Reserved
+			//CE // Reserved
+			//CF // Reserved
 
-			//D0
-			//D1
-			//D2
-			//D3
-			//D4
-			//D5
-			//D6
-			//D7
-			//D8
-			//D9
-			//DA
-			{ 0xDB, "[" },
-			{ 0xDC, "\\" },
-			{ 0xDD, "]" },
-			{ 0xDE, "'" },
-			//DF
+			//D0 // Reserved
+			//D1 // Reserved
+			//D2 // Reserved
+			//D3 // Reserved
+			//D4 // Reserved
+			//D5 // Reserved
+			//D6 // Reserved
+			//D7 // Reserved
+			//D8 // Unassigned
+			//D9 // Unassigned
+			//DA // Unassigned
+			{ 0xDB, "[" }, // Used for miscellaneous characters, varies by keyboard. This is US standard
+			{ 0xDC, "\\" }, // Used for miscellaneous characters, varies by keyboard. This is US standard
+			{ 0xDD, "]" }, // Used for miscellaneous characters, varies by keyboard. This is US standard
+			{ 0xDE, "'" }, // Used for miscellaneous characters, varies by keyboard. This is US standard
+			//DF  // Used for miscellaneous characters, varies by keyboard.
 
-			//E0
-			//E1
+			//E0 // Reserved
+			//E1 // OEM Specific
 			{ 0xE2, "OEM102" },
-			//E3
-			//E4
+			//E3 // OEM Specific
+			//E4 // OEM Specific
 			{ 0xE5, "ProcessKey" },
-			//E6
+			//E6 // OEM Specific
 			{ 0xE7, "Packet" },
-			//E8
-			//E9
-			//EA
-			//EB
-			//EC
-			//ED
-			//EE
-			//EF
+			//E8 // Unassigned
+			//E9 // OEM Specific
+			//EA // OEM Specific
+			//EB // OEM Specific
+			//EC // OEM Specific
+			//ED // OEM Specific
+			//EE // OEM Specific
+			//EF // OEM Specific
 
-			//F0
-			//F1
-			//F2
-			//F3
-			//F4
-			//F5
+			//F0 // OEM Specific
+			//F1 // OEM Specific
+			//F2 // OEM Specific
+			//F3 // OEM Specific
+			//F4 // OEM Specific
+			//F5 // OEM Specific
 			{ 0xF6, "Attn" },
 			{ 0xF7, "CrSel" },
 			{ 0xF8, "ExSel" },
 			{ 0xF9, "EraseEOF" },
 			{ 0xFA, "Play" },
 			{ 0xFB, "Zoom" },
-			//FC
+			//FC // Reserved
 			{ 0xFD, "PA1" },
 			{ 0xFE, "Clear" },
-			//FF
+			//FF // -
 		};
 	
 		public static void ReadJson() {
-			string file = Path.Combine(Environment.CurrentDirectory, "keyNames.json");
+			string filePath = Path.Combine(Environment.CurrentDirectory, "keyNames.json");
+			if (!File.Exists(filePath)) {
+				string json = JsonConvert.SerializeObject(KeyNames, Formatting.Indented);
+				File.WriteAllText(filePath, json);
+			}
+			string file = File.ReadAllText(filePath);
+			KeyNames = JsonConvert.DeserializeObject<Dictionary<int, string>>(file);
 			//Process.Start(dir);
 		}
 	}
