@@ -18,17 +18,17 @@
 			"18":"Alt", 
 			"19":"Pause", 
 			"20":"CapsLk",
+			"21":"Kana/HangulMode",
 
-
-
-
-
+			"23":"JunjaMode",
+			"24":"FinalMode",
+			"25":"Hanja/KanjiMode",
 
 			"27":"Esc",
-
-
-
-
+			"28":"Convert",
+			"29":"NonConvert",
+			"30":"Accept",
+			"31":"ModeChange",
 			"32":"Space", 
 			"33":"PgUp", 
 			"34":"PgDn", 
@@ -105,7 +105,7 @@
 			"105":"Num9",
 			"106":"Num*", 
 			"107":"Num+",
-
+			"108":"Separator",
 			"109":"Num-", 
 			"110":"Num.",
 			"111":"Num/", 
@@ -223,12 +223,12 @@
 
 
 
+			"226":"OEM102",
 
 
+			"229":"ProcessKey",
 
-
-
-
+			"231":"Packet",
 
 
 

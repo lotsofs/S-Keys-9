@@ -97,7 +97,7 @@ namespace SKeys9 {
 			_mProc = MHookCallback;
 
 			_hookTimeoutTimer = new Timer();
-			_hookTimeoutTimer.Interval = 5000; // TODO: Not hardcoded
+			_hookTimeoutTimer.Interval = 5000;
 			_hookTimeoutTimer.Tick += OnHookTimeout;
 			_hookTimeoutTimer.Start();
 		}

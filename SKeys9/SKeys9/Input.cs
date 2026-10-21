@@ -48,7 +48,7 @@ namespace SKeys9 {
 		/// </summary>
 		void StartScrollRemoveTimer() {
 			_scrollRemoveTimer = new System.Windows.Forms.Timer();
-			_scrollRemoveTimer.Interval = 300; // TODO: Make this not hardcoded
+			_scrollRemoveTimer.Interval = 300;
 			_scrollRemoveTimer.Tick += ResetScrolls;
 		}
 
@@ -185,7 +185,6 @@ namespace SKeys9 {
 		/// Creates a thread to process mouse movement data
 		/// </summary>
 		void StartMouseMovementProcessing() {
-			// Todo: Add a way to stop this
 			_oldMouseX = Cursor.Position.X;
 			_oldMouseY = Cursor.Position.Y;
 
@@ -243,7 +242,7 @@ namespace SKeys9 {
 			}
 
 			int coordsInt = S.Bits.CombineInt(e.X / 100, e.X / 100);
-			S.Dictionaries.IncrementValue(_mousePos, coordsInt, _stopwatches.MouseStop());   // TODO: This adds the new position of the mouse when really it should be the previous position added
+			S.Dictionaries.IncrementValue(_mousePos, coordsInt, _stopwatches.MouseStop());
 			_stopwatches.MouseStart();
 
 			_oldMouseX = e.X;
