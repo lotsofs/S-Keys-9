@@ -273,7 +273,7 @@ namespace SKeys9 {
 
 				case WM_MOUSEMOVE:
 					if (Configuration.LogMovement) {
-						OnMouseMove?.Invoke(this, new MoveEventArgs(hookStruct.pt.x, hookStruct.pt.y));
+						OnMouseMove?.Invoke(this, new MoveEventArgs(hookStruct.pt.x, hookStruct.pt.y, hookStruct.time));
 					}
 					break;
 			}

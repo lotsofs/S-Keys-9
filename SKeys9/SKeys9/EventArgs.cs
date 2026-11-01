@@ -52,9 +52,17 @@ namespace SKeys9 {
 			get; protected set;
 		}
 
-		public MoveEventArgs(int x, int y) {
+		/// <summary>
+		/// Hook timestamp in milliseconds. Wraps after about 49.7 days
+		/// </summary>
+		public uint Time {
+			get; protected set;
+		}
+
+		public MoveEventArgs(int x, int y, uint time) {
 			X = x;
 			Y = y;
+			Time = time;
 		}
 	}
 

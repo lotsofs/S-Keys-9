@@ -20,6 +20,7 @@ namespace SKeys9 {
 
 		int _oldMouseX;
 		int _oldMouseY;
+		uint _oldMouseTime;
 
 		List<string> _currentlyPressed = new List<string>();
 		Dictionary<string, int> _currentScrollCount = new Dictionary<string, int> {
@@ -187,6 +188,7 @@ namespace SKeys9 {
 		void StartMouseMovementProcessing() {
 			_oldMouseX = Cursor.Position.X;
 			_oldMouseY = Cursor.Position.Y;
+			_oldMouseTime = unchecked((uint)Environment.TickCount); // same clock as the hook's timestamps
 
 			_mouseMoveThread = new Thread(() => ProcessQueuedMouseMovements(_mouseLocationQueue));
 			_mouseMoveThread.IsBackground = true;
@@ -241,12 +243,15 @@ namespace SKeys9 {
 				S.Dictionaries.IncrementValue(_inputsCount, 0x9C, 1); // hijacked an unassigned VK code's slot
 			}
 
-			int coordsInt = S.Bits.CombineInt(S.Math.FloorDivide(e.X, 100), S.Math.FloorDivide(e.Y, 100));
-			S.Dictionaries.IncrementValue(_mousePos, coordsInt, _stopwatches.MouseStop());
-			_stopwatches.MouseStart();
+			// the time since the previous move is how long the mouse rested in the previous cell
+			// signed so that it survives the timestamp wrapping, and a timestamp running backwards adds nothing
+			int restMilliseconds = System.Math.Max(0, unchecked((int)(e.Time - _oldMouseTime)));
+			int coordsInt = S.Bits.CombineInt(S.Math.FloorDivide(_oldMouseX, 100), S.Math.FloorDivide(_oldMouseY, 100));
+			S.Dictionaries.IncrementValue(_mousePos, coordsInt, TimeSpan.FromMilliseconds(restMilliseconds));
 
 			_oldMouseX = e.X;
 			_oldMouseY = e.Y;
+			_oldMouseTime = e.Time;
 		}
 
 		#endregion
