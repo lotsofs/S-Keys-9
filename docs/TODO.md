@@ -6,7 +6,6 @@ Open work, one row per item. Within each group, rows are in suggested order of w
 
 | Code | Area | Summary | Severity |
 |---|---|---|---|
-| [MTS](issues.md#mts--mouse-move-thread-polls-forever-and-cannot-be-stopped) | Threading | The mouse-move thread polls every 50 ms for the app's whole life, even with movement logging off, and moves still queued at exit miss the exit save | Low |
 | [MKN](issues.md#mkn--key-names-file-replaces-the-built-in-names-instead-of-adding-to-them) | Key names | `Keys.ReadJson` replaces the built-in names with the file's instead of merging, so any key the file leaves out shows as `?` and its code; a user's own 0.8556.30292 copy leaves out OEM102 (`?226`) and 11 others (reproduced) | Low |
 | [KNP](issues.md#knp--key-names-file-is-read-from-the-working-directory) | Key names | `Keys.ReadJson` uses the working directory instead of the exe folder, and a bad or unwritable file there stops startup | Medium |
 | [SRN](issues.md#srn--renamed-scroll-counters-never-reset) | Key names | Scroll counters are created before `keyNames.json` loads and are cleared by hardcoded names, so a renamed scroll direction never clears (reproduced) | Low |

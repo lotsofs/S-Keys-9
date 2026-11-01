@@ -103,6 +103,7 @@ namespace SKeys9 {
 		/// </summary>
 		void PrepareProgramForExit(object sender = null, EventArgs e = null) {
 			_hooks.DisableHooks();
+			_input.FinishQueuedMouseMovements();
 			_input.SaveFiles();
 		}
 

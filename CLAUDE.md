@@ -52,7 +52,9 @@ Display names come from `Keys.KeyNames`. `Keys.ReadJson` replaces it with the co
 
 ### Threading
 
-Mouse-move events are queued (`ConcurrentQueue`) and processed on a background thread. That thread shares `_inputsCount`, `_inputsDuration` and `_mousePos` with the UI thread, so all access to them takes `_statsLock`: the thread for each event, the UI thread through `AddToCount` and `AddToDuration`, and `SaveFiles` only while it copies them. Only the UI thread touches `_mouseInteractions`, so it needs no lock.
+Mouse-move events are queued (`ConcurrentQueue`) and processed on a background thread. The thread sleeps until a move is queued, then waits 50 ms so that moves are handled in batches instead of waking it for each one. It runs until the process ends, because `WM_QUERYENDSESSION` doesn't guarantee an exit: the shutdown can still be cancelled. So `PrepareProgramForExit` doesn't stop it, and calls `FinishQueuedMouseMovements` on the UI thread to empty the queue before the save.
+
+That thread shares `_inputsCount`, `_inputsDuration` and `_mousePos` with the UI thread, so all access to them takes `_statsLock`: each move, which leaves the queue inside the lock, the UI thread through `AddToCount` and `AddToDuration`, and `SaveFiles` only while it copies them. Only the UI thread touches `_mouseInteractions`, so it needs no lock.
 
 ### Persistence
 

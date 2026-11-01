@@ -35,6 +35,7 @@ namespace SKeys9 {
 		public event EventHandler<ChangeEventArgs> OnKeysChanged;
 
 		ConcurrentQueue<MoveEventArgs> _mouseLocationQueue = new ConcurrentQueue<MoveEventArgs>();
+		AutoResetEvent _mouseMoveQueued = new AutoResetEvent(false);
 		Thread _mouseMoveThread;
 
 		internal Input() {
@@ -233,7 +234,7 @@ namespace SKeys9 {
 			_oldMouseTime = unchecked((uint)Environment.TickCount); // same clock as the hook's timestamps
 			_logMovementChanges = Configuration.LogMovementChanges;
 
-			_mouseMoveThread = new Thread(() => ProcessQueuedMouseMovements(_mouseLocationQueue));
+			_mouseMoveThread = new Thread(ProcessQueuedMouseMovements);
 			_mouseMoveThread.IsBackground = true;
 			//_mouseMoveThread.Name = "S Keys 9 BG Thread, where does this show up?";
 			_mouseMoveThread.Start();
@@ -247,24 +248,34 @@ namespace SKeys9 {
 		internal void OnMouseMove(object sender, MoveEventArgs e) {
 			if (Configuration.LogMovement) {
 				_mouseLocationQueue.Enqueue(e);
+				_mouseMoveQueued.Set();
 			}
 		}
 
 		/// <summary>
-		/// Looks if there are mouse movements to be processed
+		/// Sleeps until there are mouse movements to be processed.
+		/// Runs until the process ends, because a shutdown that was asked for can still be cancelled
 		/// </summary>
-		/// <param name="movementQueue"></param>
-		void ProcessQueuedMouseMovements(ConcurrentQueue<MoveEventArgs> movementQueue) {
+		void ProcessQueuedMouseMovements() {
 			while (true) {
-				if (movementQueue.Count == 0) {
-					Thread.Sleep(50);
-					continue;
-				}
-				MoveEventArgs result;
-				if (movementQueue.TryDequeue(out result)) {
-					lock (_statsLock) {
-						MouseMoveProcessing(result);
+				_mouseMoveQueued.WaitOne();
+				Thread.Sleep(50); // let moves pile up, so a moving mouse doesn't wake this thread for each one
+				FinishQueuedMouseMovements();
+			}
+		}
+
+		/// <summary>
+		/// Processes everything in the queue. Each move leaves the queue inside the lock,
+		/// so once this returns on the UI thread, none is left for a save to miss
+		/// </summary>
+		internal void FinishQueuedMouseMovements() {
+			while (true) {
+				lock (_statsLock) {
+					MoveEventArgs result;
+					if (!_mouseLocationQueue.TryDequeue(out result)) {
+						return;
 					}
+					MouseMoveProcessing(result);
 				}
 			}
 		}

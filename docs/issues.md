@@ -6,18 +6,6 @@ Dependencies between plans:
 
 - MKN, KNP and SRN all change how key names load, so do them together.
 
-## MTS — Mouse-move thread polls forever and cannot be stopped
-
-`Input.ProcessQueuedMouseMovements` ([Input.cs](../SKeys9/SKeys9/Input.cs)) loops for the app's whole life. Whenever the queue is empty it sleeps 50 ms and checks again, so it wakes 20 times a second even with movement logging off. It is a background thread, so exit kills it mid-queue, and moves still queued at that point miss the exit save.
-
-**Evidence:** read 2026-10-21.
-
-**Plan:** replace the `ConcurrentQueue` and `Thread.Sleep` with a `BlockingCollection<MoveEventArgs>` consumed through `GetConsumingEnumerable`, which blocks without polling. In `MainForm.PrepareProgramForExit`, call `CompleteAdding` and join the thread with a short timeout before `SaveFiles`. Optionally, start the thread only while movement logging is on.
-
-**Verify:** with movement logging off, the thread's context-switch count, as shown in Process Explorer, stays flat. Move the mouse just before exiting, and those moves appear in the saved log.
-
-**Docs when done:** CLAUDE.md § Threading. Changelog entry, because the last moves before exit now reach the log.
-
 ## MKN — Key names file replaces the built-in names instead of adding to them
 
 `Keys.ReadJson` ([Keys.cs](../SKeys9/SKeys9/Keys.cs)) replaces the whole built-in table with the contents of `keyNames.json`. So any code the file leaves out shows as `?` followed by its decimal code. This affects users who keep their own copy of the `KeyNames.json` shipped in 0.8556.30292, for example because they've customised it. That file leaves out 12 built-in names, so OEM102 (0xE2), for one, shows as `?226`. `KeyNames.json` also names 0xFF as `0xFF`, which the built-in table leaves unnamed.
@@ -60,14 +48,14 @@ Neither `File.WriteAllText` nor `JsonConvert.DeserializeObject` has any error ha
 
 `Hooks.OnHookCheck` ([Hooks.cs](../SKeys9/SKeys9/Hooks.cs)) reinstalls both hooks when `GetLastInputInfo` reports input newer than the last callback. Two things about it are still unproven:
 
-- **False reinstalls:** every test run used injected input. Hardware input might update `GetLastInputInfo` without reaching a hook, and each such case adds a line to `debuglog.log`. Typing at the lock screen or a UAC prompt is expected to do this.
+- **False reinstalls:** every test run used injected input. Hardware input might update `GetLastInputInfo` without reaching a hook, and each such case adds a line to `debuglog.log`. Typing at the lock screen or a UAC prompt is expected to do this. So is the first input after a cancelled shutdown, because the app unhooks as soon as Windows asks to shut down (read only).
 - **A real drop:** recovery was only tested by unhooking behind `Hooks`' back, not with Windows removing a hook.
 
 **Evidence:** reproduced 2026-11-01. With no input from the user, injected activity caused no reinstalls, and a simulated dead hook recovered within 2.3 s for the mouse and 0.6 s for the keyboard. The real exe, frozen while 30 moves were injected over 9 s, kept its hook: each move waited out the hook timeout (about 310 ms), so a real drop wasn't seen. It reinstalled once on resuming, because it had missed that input, and later moves were seen. A second copy running during the freeze logged one reinstall inside the freeze and no more. By the timing, this looks like a false reinstall: the frozen hook ahead of it in the chain delayed each move past `HookCheckMargin`, and reinstalling put it first in the chain. Only that timing supports this, but it suggests another program's slow hook can cause the odd harmless reinstall.
 
 **Plan:** use the app normally, then read `debuglog.log`. If reinstalls appear during ordinary use, raise `HookCheckMargin` or rethink the check. Note any time input stops showing and then comes back, because normal use is now the only known way to see a real drop: freezing the app didn't cause one.
 
-**Verify:** `debuglog.log` stays close to empty in normal use, apart from time at the lock screen or UAC prompts. After a real drop, the watchdog logs a reinstall and later input is seen.
+**Verify:** `debuglog.log` stays close to empty in normal use, apart from time at the lock screen or UAC prompts, and cancelled shutdowns. After a real drop, the watchdog logs a reinstall and later input is seen.
 
 **Docs when done:** none.
 
