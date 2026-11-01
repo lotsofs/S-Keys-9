@@ -36,7 +36,7 @@ All source is in `SKeys9/SKeys9/`. Input flows one way: `Hooks` → `Input` → 
 - **`Input`** holds all state. It maps codes to display names and keeps the held-keys list and the scroll counters for each direction, which clear 300 ms after the last scroll. It also updates the statistics and raises `OnKeysChanged` for the displays. The `ChangeEventArgs` it sends holds references to the live list and counters, not copies.
 - **`MainForm`** owns everything else. It wires the hooks to `Input`, renders the held keys, and handles the tray, exit and context-menu behaviour. Startup order matters: `Configuration.SetDirectories` (in `Program.Main`) → `ReadSettings` → `AddHooks` (which constructs `Input`, and `Input` loads the logs) → `Keys.ReadJson`.
 - **`CounterForm`** is a press counter for the current session. It gets its counts by comparing each `ChangeEventArgs` with its own copy of the previous state, not from hook events, and is independent of the saved statistics.
-- **`Log`** appends timestamped lines to `debuglog.log` and never throws. `Program` sends it unhandled errors, on top of the standard error dialog for the UI thread. `Hooks` sends it each reinstall and each case of input not reaching the hooks, and `Input` each log it couldn't update.
+- **`Log`** appends timestamped lines to `debuglog.log` and never throws. `Program` sends it unhandled errors, on top of the standard error dialog for the UI thread. `Hooks` sends it each reinstall and each case of input not reaching the hooks, `Input` each log it couldn't update, and `Keys` each problem with `KeyNames.json`.
 - **`FrameworkS/`** holds small helpers in namespace `S`: the `S.Dictionaries.IncrementValue` overloads, `S.Bits.CombineInt` and `S.Math`.
 
 ### Key codes
@@ -50,7 +50,7 @@ Everything is keyed by Windows virtual-key (VK) code, 0x00–0xFF. Mouse buttons
 
 A new pseudo-input needs a free slot and a name in `Keys.KeyNames`, and in `KeyNames.json` to keep that sample complete.
 
-Display names come from `Keys.KeyNames`. `Keys.ReadJson` lays the contents of `keyNames.json` over it, so a code the file leaves out keeps its built-in name. The file's keys are decimal VK codes, and `ReadJson` writes the defaults to it first if it is missing. It reads from `Environment.CurrentDirectory`, not the exe directory that the other files use. In `Input`, the held-keys list and the scroll counters are keyed by display name, not by code.
+Display names come from `Keys.KeyNames`. `Keys.ReadJson` lays the contents of `KeyNames.json` over it, so a code the file leaves out or sets to `null` keeps its built-in name. The file's keys are decimal VK codes. If the file is missing, `ReadJson` writes the defaults to it. If it can't be read or parsed, the built-in names stay, and `ReadJson` logs the problem and shows it in a dialog, on every start until the file is fixed. In `Input`, the held-keys list and the scroll counters are keyed by display name, not by code.
 
 ### Threading
 
@@ -65,9 +65,10 @@ That thread shares `_inputsCount`, `_inputsDuration` and `_mousePos` with the UI
 | File | Contents |
 |---|---|
 | `skeys9.ini` | `Key=Value` settings. Colours are 6-digit hex RGB, and alpha is forced to ff on load |
+| `KeyNames.json` | Custom key names, as decimal VK code and name. Written with the defaults if missing |
 | `count.log`, `duration.log` | One line per VK code 00–FF: `XX <count>` / `XX <TimeSpan>` |
 | `mousemovemap.log`, `mouseinteractionmap.log` | `XXXXXXXX <hex value>`. The key is a screen cell packed by `S.Bits.CombineInt` (x in the high 16 bits, y in the low). Both halves are signed, because screens left of or above the primary have negative coordinates. Cells are 100 px for movement and 10 px for clicks, and coordinates round down to a cell (`S.Math.FloorDivide`) |
-| `debuglog.log` | Timestamped lines for users to open when something goes wrong: errors, logs that couldn't be updated, hook reinstalls, and input that couldn't reach the hooks. It only appears once there's something to record, and has no setting or size limit |
+| `debuglog.log` | Timestamped lines for users to open when something goes wrong: errors, logs that couldn't be updated, problems with `KeyNames.json`, hook reinstalls, and input that couldn't reach the hooks. It only appears once there's something to record, and has no setting or size limit |
 
 - After loading the logs at startup, the app immediately saves them again and copies each one to `*.log.bak`. `ReadSettings` writes `skeys9.ini.bak`.
 - Logs autosave every 60 s and on exit: on `Application.ApplicationExit`, and on `WM_QUERYENDSESSION` in `MainForm.WndProc` for Windows shutdown.

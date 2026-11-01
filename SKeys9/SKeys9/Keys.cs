@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Windows.Forms;
 
 namespace SKeys9 {
 	public static class Keys {
@@ -281,23 +282,52 @@ namespace SKeys9 {
 		};
 
 		/// <summary>
-		/// Lays the names in the file over the built-in ones, so a code the file leaves out keeps its built-in name
+		/// Lays the names in the file over the built-in ones, so a code the file leaves out keeps its built-in name.
+		/// If the file can't be used, the built-in names stay
 		/// </summary>
 		public static void ReadJson() {
-			string filePath = Path.Combine(Environment.CurrentDirectory, "keyNames.json");
-			if (!File.Exists(filePath)) {
-				string json = JsonConvert.SerializeObject(KeyNames, Formatting.Indented);
-				File.WriteAllText(filePath, json);
+			if (!File.Exists(Configuration.KeyNamesPath)) {
+				WriteDefaults();
+				return;
 			}
-			string file = File.ReadAllText(filePath);
-			Dictionary<int, string> names = JsonConvert.DeserializeObject<Dictionary<int, string>>(file);
+
+			Dictionary<int, string> names;
+			try {
+				string file = File.ReadAllText(Configuration.KeyNamesPath);
+				names = JsonConvert.DeserializeObject<Dictionary<int, string>>(file);
+			}
+			catch (Exception e) when (e is IOException || e is UnauthorizedAccessException || e is JsonException) {
+				Log.Write("Couldn't read KeyNames.json: " + e.Message);
+				MessageBox.Show(string.Format(
+					"Couldn't read KeyNames.json, so S Keys 9 is using its normal key names.\n\n{0}\n\n{1}",
+					Configuration.KeyNamesPath,
+					e.Message
+				), "S Keys 9");
+				return;
+			}
+
 			if (names == null) { // the file is empty
 				return;
 			}
 			foreach (KeyValuePair<int, string> name in names) {
-				KeyNames[name.Key] = name.Value;
+				if (name.Value != null) {
+					KeyNames[name.Key] = name.Value;
+				}
 			}
 			//Process.Start(dir);
+		}
+
+		/// <summary>
+		/// Writes the built-in names to the file, for users to edit. Nothing else depends on this working
+		/// </summary>
+		static void WriteDefaults() {
+			try {
+				string json = JsonConvert.SerializeObject(KeyNames, Formatting.Indented);
+				File.WriteAllText(Configuration.KeyNamesPath, json);
+			}
+			catch (Exception e) when (e is IOException || e is UnauthorizedAccessException) {
+				Log.Write("Couldn't create KeyNames.json: " + e.Message);
+			}
 		}
 	}
 

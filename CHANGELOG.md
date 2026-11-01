@@ -4,6 +4,10 @@ What changed for users of S Keys 9, per release. Downloads are on the [releases 
 
 ## Unreleased
 
+### Action required
+
+- **If you start S Keys 9 from another folder, move your `KeyNames.json` next to `SKeys9.exe`.** S Keys 9 now always reads it from there.
+
 ### Added
 
 - `debuglog.log` next to `SKeys9.exe` records errors, when S Keys 9 had to reconnect to Windows, and when it couldn't see your input, such as on the lock screen or while a program running as administrator has focus, with the time. It only appears once there's something to record.
@@ -17,6 +21,7 @@ What changed for users of S Keys 9, per release. Downloads are on the [releases 
 - Mouse input now comes back if Windows cuts S Keys 9 off while you're typing. `count.log` counts how often S Keys 9 has to reconnect, on the `9D` line.
 - Saving can no longer leave a log cut short.
 - Mouse movement from just before closing S Keys 9 is now saved.
+- S Keys 9 no longer fails to start when `KeyNames.json` is broken, or when its start folder can't be written to. A broken file gets a message naming the problem, and the normal key names are used until it's fixed.
 
 ## 0.8556.30292 (2023-06-05)
 
