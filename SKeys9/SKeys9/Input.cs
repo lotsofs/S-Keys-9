@@ -21,6 +21,7 @@ namespace SKeys9 {
 		int _oldMouseX;
 		int _oldMouseY;
 		uint _oldMouseTime;
+		int _logMovementChanges;
 
 		List<string> _currentlyPressed = new List<string>();
 		Dictionary<string, int> _currentScrollCount = new Dictionary<string, int> {
@@ -189,6 +190,7 @@ namespace SKeys9 {
 			_oldMouseX = Cursor.Position.X;
 			_oldMouseY = Cursor.Position.Y;
 			_oldMouseTime = unchecked((uint)Environment.TickCount); // same clock as the hook's timestamps
+			_logMovementChanges = Configuration.LogMovementChanges;
 
 			_mouseMoveThread = new Thread(() => ProcessQueuedMouseMovements(_mouseLocationQueue));
 			_mouseMoveThread.IsBackground = true;
@@ -234,6 +236,14 @@ namespace SKeys9 {
 			}
 
 			S.Dictionaries.IncrementValue(_inputsDuration, 0x9B, TimeSpan.FromTicks(1)); // hijacked an unassigned VK code's slot
+
+			// logging was off since the previous move, so the time and distance from it mean nothing
+			if (_logMovementChanges != Configuration.LogMovementChanges) {
+				_logMovementChanges = Configuration.LogMovementChanges;
+				RememberMouseMove(e);
+				return;
+			}
+
 			double distance = S.Math.Distance2D(e.X, e.Y, _oldMouseX, _oldMouseY);
 			uint centiDistance = (uint)(distance * 100); // calculating distance to the centipixel, should be accurate enough
 			S.Dictionaries.IncrementValue(_inputsCount, 0x9B, centiDistance); // hijacked an unassigned VK code's slot
@@ -249,6 +259,14 @@ namespace SKeys9 {
 			int coordsInt = S.Bits.CombineInt(S.Math.FloorDivide(_oldMouseX, 100), S.Math.FloorDivide(_oldMouseY, 100));
 			S.Dictionaries.IncrementValue(_mousePos, coordsInt, TimeSpan.FromMilliseconds(restMilliseconds));
 
+			RememberMouseMove(e);
+		}
+
+		/// <summary>
+		/// Keeps a mouse move for the next one to be compared against
+		/// </summary>
+		/// <param name="e"></param>
+		void RememberMouseMove(MoveEventArgs e) {
 			_oldMouseX = e.X;
 			_oldMouseY = e.Y;
 			_oldMouseTime = e.Time;

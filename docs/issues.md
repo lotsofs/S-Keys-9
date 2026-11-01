@@ -4,7 +4,7 @@ Detail for the items in [TODO.md](TODO.md).
 
 Dependencies between plans:
 
-- RAC decides how the mouse-move thread shares data. MTS builds on that choice, and goes away if RAC drops the thread. TGL resets state that thread owns, so it comes after RAC too.
+- RAC decides how the mouse-move thread shares data. MTS builds on that choice, and goes away if RAC drops the thread.
 - MKN, KNP and SRN all change how key names load, so do them together.
 - TMR builds on HKT, which may change what the hook timeout measures.
 
@@ -45,21 +45,6 @@ The alternative is to drop the thread and process moves on the UI thread. Each e
 **Verify:** with movement logging off, the thread's context-switch count, as shown in Process Explorer, stays flat. Move the mouse just before exiting, and those moves appear in the saved log.
 
 **Docs when done:** CLAUDE.md § Threading. Changelog entry, because the last moves before exit now reach the log.
-
-## TGL — Turning movement logging on mid-session skews the first move
-
-`Hooks` only forwards moves while `Configuration.LogMovement` is on ([Hooks.cs](../SKeys9/SKeys9/Hooks.cs)), and the settings window can change that while the app runs. `Input` keeps the position and timestamp of the last move it saw, so the first move after logging comes back on does two things wrong:
-
-- It credits the whole off period as rest to the old position's cell. If logging was off from the start, that's the time since the app started.
-- It adds the jump from the old position to the total distance (0x9B).
-
-**Evidence:** read 2026-11-01. Not reproduced.
-
-**Plan:** skip the rest time and the distance for the first move after logging comes on. `Hooks` would forward every move, and `Input.OnMouseMove` would notice the change from off to on and mark that event, so that only the mouse-move thread touches `_oldMouseX`, `_oldMouseY` and `_oldMouseTime`. Do this after RAC, since that decides whether the thread stays.
-
-**Verify:** with logging on, rest the mouse in one cell. Turn logging off, wait a minute, move the mouse elsewhere and turn logging back on. Then move the mouse. Neither the old cell's time nor the distance counter may jump.
-
-**Docs when done:** none in CLAUDE.md. Changelog entry.
 
 ## MKN — Key names file replaces the built-in names instead of adding to them
 

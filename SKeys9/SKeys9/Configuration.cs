@@ -17,7 +17,26 @@ namespace SKeys9 {
 
 		internal static bool LogButtons = false;
 		internal static bool LogClicks = false;
-		internal static bool LogMovement = false;
+
+		static bool _logMovement = false;
+		internal static bool LogMovement {
+			get {
+				return _logMovement;
+			}
+			set {
+				if (value != _logMovement) {
+					_logMovement = value;
+					LogMovementChanges++;
+				}
+			}
+		}
+
+		/// <summary>
+		/// How many times LogMovement has changed, so the mouse move thread can tell that logging was interrupted
+		/// </summary>
+		internal static int LogMovementChanges {
+			get; private set;
+		}
 
 		internal static string Name = "Microsoft Sans Serif";
 		internal static float Size = 18;	// point size
