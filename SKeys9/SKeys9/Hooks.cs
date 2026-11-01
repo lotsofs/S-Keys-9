@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -29,6 +30,14 @@ namespace SKeys9 {
 
 		private const int HookCheckMargin = 100; // ms. Input this recent may still be on its way to a callback
 
+		private const int InReach = -1;
+		private const int SecureDesktop = 0; // never a foreground process's id, which fills this slot otherwise
+
+		private const uint DESKTOP_SWITCHDESKTOP = 0x0100;
+		private const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
+		private const uint TOKEN_QUERY = 0x0008;
+		private const int TokenElevation = 20;
+
 		private List<int> _currentlyPressed = new List<int>();
 
 		public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
@@ -44,6 +53,10 @@ namespace SKeys9 {
 
 		Timer _hookCheckTimer;
 		uint _lastCallback;
+		bool _elevated;
+		volatile bool _locked;
+		int _outOfReach = InReach;
+		int _outOfReachLogged = InReach;
 
 		private LowLevelKeyboardProc _kbProc;
 		private IntPtr _kbHookID = IntPtr.Zero;
@@ -101,11 +114,36 @@ namespace SKeys9 {
 		[DllImport("kernel32.dll", SetLastError = true)]
 		private static extern IntPtr GetModuleHandle(string lpModuleName);
 
-		//[DllImport("user32.dll")]
-		//public static extern IntPtr GetForegroundWindow();
+		[DllImport("user32.dll")]
+		private static extern IntPtr GetForegroundWindow();
 
-		//[DllImport("user32.dll", SetLastError = true)]
-		//private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+		[DllImport("user32.dll", SetLastError = true)]
+		private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+		/// <summary>
+		/// Fails on Windows' secure desktop, which is what the lock screen is on
+		/// </summary>
+		[DllImport("user32.dll", SetLastError = true)]
+		private static extern IntPtr OpenInputDesktop(uint dwFlags, bool fInherit, uint dwDesiredAccess);
+
+		[DllImport("user32.dll", SetLastError = true)]
+		[return: MarshalAs(UnmanagedType.Bool)]
+		private static extern bool CloseDesktop(IntPtr hDesktop);
+
+		[DllImport("kernel32.dll", SetLastError = true)]
+		private static extern IntPtr OpenProcess(uint dwDesiredAccess, bool bInheritHandle, uint dwProcessId);
+
+		[DllImport("kernel32.dll", SetLastError = true)]
+		[return: MarshalAs(UnmanagedType.Bool)]
+		private static extern bool CloseHandle(IntPtr hObject);
+
+		[DllImport("advapi32.dll", SetLastError = true)]
+		[return: MarshalAs(UnmanagedType.Bool)]
+		private static extern bool OpenProcessToken(IntPtr ProcessHandle, uint DesiredAccess, out IntPtr TokenHandle);
+
+		[DllImport("advapi32.dll", SetLastError = true)]
+		[return: MarshalAs(UnmanagedType.Bool)]
+		private static extern bool GetTokenInformation(IntPtr TokenHandle, int TokenInformationClass, out int TokenInformation, int TokenInformationLength, out int ReturnLength);
 
 		#endregion
 
@@ -114,6 +152,11 @@ namespace SKeys9 {
 			_mProc = MHookCallback;
 
 			_lastCallback = unchecked((uint)Environment.TickCount);
+
+			using (Process curProcess = Process.GetCurrentProcess()) {
+				_elevated = IsElevated((uint)curProcess.Id);
+			}
+			SystemEvents.SessionSwitch += OnSessionSwitch;
 
 			_hookCheckTimer = new Timer();
 			_hookCheckTimer.Interval = 1000;
@@ -157,7 +200,8 @@ namespace SKeys9 {
 
 		/// <summary>
 		/// Windows can't be asked whether a hook is still installed, so this looks for the symptom:
-		/// input newer than the last callback, which neither hook saw. Reinstalls both if there is any
+		/// input newer than the last callback, which neither hook saw. Reinstalls both if there is any,
+		/// unless Windows is keeping that input from the hooks, which says nothing about the hooks
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
@@ -171,12 +215,110 @@ namespace SKeys9 {
 			uint now = unchecked((uint)Environment.TickCount);
 			bool settled = unchecked((int)(now - lastInput.dwTime)) >= HookCheckMargin;
 			bool unseen = unchecked((int)(lastInput.dwTime - _lastCallback)) >= HookCheckMargin;
+
+			int outOfReach = FindOutOfReach();
+			if (outOfReach == InReach) {
+				_outOfReachLogged = InReach;
+			}
+			else if (unseen && outOfReach != _outOfReachLogged) {
+				_outOfReachLogged = outOfReach;
+				Log.Write("Not seeing input: " + DescribeOutOfReach(outOfReach));
+			}
+
+			// the last of that input can land just before the check that finds input back in reach
+			bool skipCheck = outOfReach != InReach || _outOfReach != InReach;
+			_outOfReach = outOfReach;
+			if (skipCheck) {
+				_lastCallback = now;
+				return;
+			}
+
 			if (settled && unseen) {
 				_lastCallback = now;
 				DisableHooks();
 				EnableHooks();
 				Log.Write("Reinstalled the hooks: input arrived that neither hook saw");
 				OnHooksReinstalled?.Invoke(this, EventArgs.Empty);
+			}
+		}
+
+		/// <summary>
+		/// Notes the PC being locked. The lock screen starts out on the normal desktop, where FindOutOfReach can't spot it
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		void OnSessionSwitch(object sender, SessionSwitchEventArgs e) {
+			if (e.Reason == SessionSwitchReason.SessionLock) {
+				_locked = true;
+			}
+			else if (e.Reason == SessionSwitchReason.SessionUnlock) {
+				_locked = false;
+			}
+		}
+
+		/// <summary>
+		/// Looks for what's keeping input from the hooks. Windows hides it from them
+		/// on its secure desktop, and while a process with more rights than this one has focus
+		/// </summary>
+		/// <returns>SecureDesktop, that process's id, or InReach</returns>
+		int FindOutOfReach() {
+			if (_locked) {
+				return SecureDesktop;
+			}
+			IntPtr desktop = OpenInputDesktop(0, false, DESKTOP_SWITCHDESKTOP);
+			if (desktop == IntPtr.Zero) {
+				return SecureDesktop;
+			}
+			CloseDesktop(desktop);
+
+			uint processId;
+			if (GetWindowThreadProcessId(GetForegroundWindow(), out processId) != 0 && !_elevated && IsElevated(processId)) {
+				return (int)processId;
+			}
+			return InReach;
+		}
+
+		/// <summary>
+		/// Whether a process is elevated. One that can't even be looked at counts too, because it's a system process
+		/// </summary>
+		/// <param name="processId">the process</param>
+		/// <returns></returns>
+		bool IsElevated(uint processId) {
+			IntPtr process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, processId);
+			if (process == IntPtr.Zero) {
+				return true;
+			}
+
+			IntPtr token;
+			bool opened = OpenProcessToken(process, TOKEN_QUERY, out token);
+			CloseHandle(process);
+			if (!opened) {
+				return true;
+			}
+
+			int elevated;
+			int length;
+			bool read = GetTokenInformation(token, TokenElevation, out elevated, sizeof(int), out length);
+			CloseHandle(token);
+			return read && elevated != 0;
+		}
+
+		/// <summary>
+		/// Puts what FindOutOfReach found into words
+		/// </summary>
+		/// <param name="outOfReach">what it found</param>
+		/// <returns></returns>
+		string DescribeOutOfReach(int outOfReach) {
+			if (outOfReach == SecureDesktop) {
+				return "the lock screen or a UAC prompt is showing";
+			}
+			try {
+				using (Process process = Process.GetProcessById(outOfReach)) {
+					return process.ProcessName + " is running as administrator";
+				}
+			}
+			catch (Exception e) when (e is ArgumentException || e is InvalidOperationException) {
+				return "a program running as administrator had focus"; // it has closed since
 			}
 		}
 

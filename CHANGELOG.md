@@ -6,7 +6,7 @@ What changed for users of S Keys 9, per release. Downloads are on the [releases 
 
 ### Added
 
-- `debuglog.log` next to `SKeys9.exe` records errors and when S Keys 9 had to reconnect to Windows, with the time. It only appears once there's something to record.
+- `debuglog.log` next to `SKeys9.exe` records errors, when S Keys 9 had to reconnect to Windows, and when it couldn't see your input, such as on the lock screen or while a program running as administrator has focus, with the time. It only appears once there's something to record.
 
 ### Fixed
 

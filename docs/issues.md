@@ -44,21 +44,6 @@ Neither `File.WriteAllText` nor `JsonConvert.DeserializeObject` has any error ha
 
 **Docs when done:** CLAUDE.md § Architecture (the startup order). Changelog entry.
 
-## WDG — Hook watchdog not yet seen on real use
-
-`Hooks.OnHookCheck` ([Hooks.cs](../SKeys9/SKeys9/Hooks.cs)) reinstalls both hooks when `GetLastInputInfo` reports input newer than the last callback. Two things about it are still unproven:
-
-- **False reinstalls:** every test run used injected input. Hardware input might update `GetLastInputInfo` without reaching a hook, and each such case adds a line to `debuglog.log`. Typing at the lock screen or a UAC prompt is expected to do this. So is the first input after a cancelled shutdown, because the app unhooks as soon as Windows asks to shut down (read only).
-- **A real drop:** recovery was only tested by unhooking behind `Hooks`' back, not with Windows removing a hook.
-
-**Evidence:** reproduced 2026-11-01. With no input from the user, injected activity caused no reinstalls, and a simulated dead hook recovered within 2.3 s for the mouse and 0.6 s for the keyboard. The real exe, frozen while 30 moves were injected over 9 s, kept its hook: each move waited out the hook timeout (about 310 ms), so a real drop wasn't seen. It reinstalled once on resuming, because it had missed that input, and later moves were seen. A second copy running during the freeze logged one reinstall inside the freeze and no more. By the timing, this looks like a false reinstall: the frozen hook ahead of it in the chain delayed each move past `HookCheckMargin`, and reinstalling put it first in the chain. Only that timing supports this, but it suggests another program's slow hook can cause the odd harmless reinstall.
-
-**Plan:** use the app normally, then read `debuglog.log`. If reinstalls appear during ordinary use, raise `HookCheckMargin` or rethink the check. Note any time input stops showing and then comes back, because normal use is now the only known way to see a real drop: freezing the app didn't cause one.
-
-**Verify:** `debuglog.log` stays close to empty in normal use, apart from time at the lock screen or UAC prompts, and cancelled shutdowns. After a real drop, the watchdog logs a reinstall and later input is seen.
-
-**Docs when done:** none.
-
 ## TMR — Hook check interval and scroll clear delay are hardcoded
 
 The hook check interval is 1000 ms in the `Hooks` constructor ([Hooks.cs](../SKeys9/SKeys9/Hooks.cs)). The delay before scroll counters clear is 300 ms in `Input.StartScrollRemoveTimer` ([Input.cs](../SKeys9/SKeys9/Input.cs)). Both should be settings.
