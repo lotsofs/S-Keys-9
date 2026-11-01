@@ -6,7 +6,6 @@ Open work, one row per item. Within each group, rows are in suggested order of w
 
 | Code | Area | Summary | Severity |
 |---|---|---|---|
-| [NEG](issues.md#neg--heatmap-keys-break-for-negative-screen-coordinates) | Heatmap | `S.Bits.CombineInt` doesn't mask its low half, so on screens above the primary monitor a negative y overwrites x and cells collide (reproduced) | Medium |
 | [DWL](issues.md#dwl--mouse-rest-time-is-credited-to-the-wrong-cell) | Heatmap | Time the mouse rested is added to the cell it moved to, not the one it rested in, and is timed when dequeued rather than when the event happened | Low |
 | [RAC](issues.md#rac--mouse-move-thread-races-the-ui-thread-on-the-statistics) | Threading | The mouse-move thread and the UI thread share the statistics without a lock; a collision abandons the save and can leave `mousemovemap.log` cut short | Medium |
 | [MTS](issues.md#mts--mouse-move-thread-polls-forever-and-cannot-be-stopped) | Threading | The mouse-move thread polls every 50 ms for the app's whole life, even with movement logging off, and moves still queued at exit miss the exit save | Low |

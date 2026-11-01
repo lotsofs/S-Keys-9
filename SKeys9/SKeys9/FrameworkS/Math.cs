@@ -31,6 +31,17 @@ namespace S {
 			double c2 = System.Math.Pow(a, 2) + System.Math.Pow(b, 2);
 			return System.Math.Sqrt(c2);
 		}
+
+		/// <summary>
+		/// Integer division that rounds down instead of toward zero
+		/// </summary>
+		/// <param name="value">number to divide</param>
+		/// <param name="divisor">number to divide by, must be positive</param>
+		/// <returns></returns>
+		public static int FloorDivide(int value, int divisor) {
+			int quotient = value / divisor;
+			return value % divisor < 0 ? quotient - 1 : quotient;
+		}
 	}
 
 }

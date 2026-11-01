@@ -42,7 +42,7 @@ namespace SKeys9 {
 			CountPath = Path.Combine(DirectoryPath, "count.log");
 			DurationPath = Path.Combine(DirectoryPath, "duration.log"); 
 			MousePath = Path.Combine(DirectoryPath, "mousemovemap.log");
-			InteractionPath = Path.Combine(DirectoryPath, "mouseinteraction2map.log");
+			InteractionPath = Path.Combine(DirectoryPath, "mouseinteractionmap.log");
 			SettingsPath = Path.Combine(DirectoryPath, "skeys9.ini");
 
 			if (!Directory.Exists(DirectoryPath)) {

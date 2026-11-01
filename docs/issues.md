@@ -4,27 +4,10 @@ Detail for the items in [TODO.md](TODO.md).
 
 Dependencies between plans:
 
-- NEG and DWL both change how heatmap cells are computed. `mousemovemap.log` is new in the next release, so ship them in that release too, and its saved format changes only once.
+- DWL changes which cell movement time goes to. `mousemovemap.log` is new in the next release, so ship DWL in that release too, and its saved data changes meaning only once.
 - RAC decides how the mouse-move thread shares data. MTS builds on that choice, and goes away if RAC drops the thread.
 - MKN, KNP and SRN all change how key names load, so do them together.
 - TMR builds on HKT, which may change what the hook timeout measures.
-
-## NEG — Heatmap keys break for negative screen coordinates
-
-`S.Bits.CombineInt(a, b)` ([Bits.cs](../SKeys9/SKeys9/FrameworkS/Bits.cs)) returns `a << 16 | b` without masking `b`. A negative `b` has all of its high bits set, so it overwrites `a`. Screens to the left of or above the primary monitor have negative coordinates:
-
-- **Click map:** every cell with a negative y and the same y cell packs to the same key, whatever its x.
-- **Movement map:** the same happens there.
-
-Integer division also truncates toward zero, so the two cells on either side of 0 merge into one double-width cell: −9 to 9 px for clicks, −99 to 99 px for movement.
-
-**Evidence:** reproduced 2026-10-21 by calling `CombineInt` in the built exe by reflection. `CombineInt(3, -1)` and `CombineInt(7, -1)` both returned `FFFFFFFF`. `CombineInt(-2, 5)` returned `FFFE0005`, so a negative x survives.
-
-**Plan:** mask the low half (`a << 16 | (b & 0xFFFF)`) and floor-divide the coordinates instead of truncating. Each half then reads back as a signed 16-bit cell. Offsetting by the virtual-screen origin would avoid negative cells, but that origin moves when monitors are rearranged, so masking is the better fix. Anything that reads the logs must treat each half as signed.
-
-**Verify:** by reflection, `CombineInt(3, -1)` returns `0003FFFF` and `CombineInt(7, -1)` returns `0007FFFF`. Then click on a monitor above the primary and check that the click log gains distinct keys.
-
-**Docs when done:** CLAUDE.md § Persistence (say that the halves are signed). Changelog entry.
 
 ## DWL — Mouse rest time is credited to the wrong cell
 
@@ -32,7 +15,7 @@ Integer division also truncates toward zero, so the two cells on either side of 
 
 **Evidence:** read 2026-10-21. A code comment on that line noted the first part.
 
-**Plan:** credit the time to the cell of `_oldMouseX` and `_oldMouseY`. Carry the hook's event timestamp (`MSLLHOOKSTRUCT.time`, in ms) in `MoveEventArgs`, and use the difference between successive timestamps instead of the stopwatch. The timestamp wraps after about 49.7 days, so subtract it as unchecked `uint`. Do this together with NEG.
+**Plan:** credit the time to the cell of `_oldMouseX` and `_oldMouseY`. Carry the hook's event timestamp (`MSLLHOOKSTRUCT.time`, in ms) in `MoveEventArgs`, and use the difference between successive timestamps instead of the stopwatch. The timestamp wraps after about 49.7 days, so subtract it as unchecked `uint`.
 
 **Verify:** by reflection, feed two moves with known timestamps and check that the gap between them lands in the first position's cell.
 
@@ -51,7 +34,7 @@ The UI thread also writes the first two on every key press, and `SaveFiles` read
 A save can also collide with the thread. If `SaveFiles` is enumerating `_mousePos` while the thread adds a cell, it throws `InvalidOperationException`. `SaveFiles` catches that and abandons the rest of the save, with these effects:
 
 - `mousemovemap.log` is left part-written, because opening the `StreamWriter` already truncated it.
-- `mouseinteraction2map.log` isn't saved that round.
+- `mouseinteractionmap.log` isn't saved that round.
 - If the abandoned save was the one on exit, the next start loads the short file. The `.log.bak` copy only holds the data as of the last start.
 
 **Evidence:** read 2026-10-21. Not reproduced.

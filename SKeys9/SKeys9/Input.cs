@@ -154,7 +154,7 @@ namespace SKeys9 {
 				S.Dictionaries.IncrementValue(_inputsCount, (int)e.Button, 1);
 			}
 			if (Configuration.LogClicks) {
-				int coordsInt = S.Bits.CombineInt(e.X / 10, e.Y / 10);
+				int coordsInt = S.Bits.CombineInt(S.Math.FloorDivide(e.X, 10), S.Math.FloorDivide(e.Y, 10));
 				S.Dictionaries.IncrementValue(_mouseInteractions, coordsInt, 1);
 			}
 			SetButtonAsPressed((int)e.Button, true);
@@ -241,7 +241,7 @@ namespace SKeys9 {
 				S.Dictionaries.IncrementValue(_inputsCount, 0x9C, 1); // hijacked an unassigned VK code's slot
 			}
 
-			int coordsInt = S.Bits.CombineInt(e.X / 100, e.Y / 100);
+			int coordsInt = S.Bits.CombineInt(S.Math.FloorDivide(e.X, 100), S.Math.FloorDivide(e.Y, 100));
 			S.Dictionaries.IncrementValue(_mousePos, coordsInt, _stopwatches.MouseStop());
 			_stopwatches.MouseStart();
 
