@@ -241,7 +241,7 @@ namespace SKeys9 {
 				S.Dictionaries.IncrementValue(_inputsCount, 0x9C, 1); // hijacked an unassigned VK code's slot
 			}
 
-			int coordsInt = S.Bits.CombineInt(e.X / 100, e.X / 100);
+			int coordsInt = S.Bits.CombineInt(e.X / 100, e.Y / 100);
 			S.Dictionaries.IncrementValue(_mousePos, coordsInt, _stopwatches.MouseStop());
 			_stopwatches.MouseStart();
 

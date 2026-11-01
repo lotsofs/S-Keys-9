@@ -41,7 +41,7 @@ namespace SKeys9 {
 			DirectoryPath = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName); // Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"S\SKeys9\"); //@"S\SKeys9\"); //@"S\inputf8\");
 			CountPath = Path.Combine(DirectoryPath, "count.log");
 			DurationPath = Path.Combine(DirectoryPath, "duration.log"); 
-			MousePath = Path.Combine(DirectoryPath, "mousemove2map.log");
+			MousePath = Path.Combine(DirectoryPath, "mousemovemap.log");
 			InteractionPath = Path.Combine(DirectoryPath, "mouseinteraction2map.log");
 			SettingsPath = Path.Combine(DirectoryPath, "skeys9.ini");
 

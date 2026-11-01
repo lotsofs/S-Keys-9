@@ -6,10 +6,9 @@ Open work, one row per item. Within each group, rows are in suggested order of w
 
 | Code | Area | Summary | Severity |
 |---|---|---|---|
-| [YAX](issues.md#yax--movement-heatmap-records-x-on-both-axes) | Heatmap | `MouseMoveProcessing` packs each movement cell as (x, x), so every saved `mousemove2map.log` entry loses its y position (reproduced) | High |
 | [NEG](issues.md#neg--heatmap-keys-break-for-negative-screen-coordinates) | Heatmap | `S.Bits.CombineInt` doesn't mask its low half, so on screens above the primary monitor a negative y overwrites x and cells collide (reproduced) | Medium |
 | [DWL](issues.md#dwl--mouse-rest-time-is-credited-to-the-wrong-cell) | Heatmap | Time the mouse rested is added to the cell it moved to, not the one it rested in, and is timed when dequeued rather than when the event happened | Low |
-| [RAC](issues.md#rac--mouse-move-thread-races-the-ui-thread-on-the-statistics) | Threading | The mouse-move thread and the UI thread share the statistics without a lock; a collision abandons the save and can leave `mousemove2map.log` cut short | Medium |
+| [RAC](issues.md#rac--mouse-move-thread-races-the-ui-thread-on-the-statistics) | Threading | The mouse-move thread and the UI thread share the statistics without a lock; a collision abandons the save and can leave `mousemovemap.log` cut short | Medium |
 | [MTS](issues.md#mts--mouse-move-thread-polls-forever-and-cannot-be-stopped) | Threading | The mouse-move thread polls every 50 ms for the app's whole life, even with movement logging off, and moves still queued at exit miss the exit save | Low |
 | [MKN](issues.md#mkn--key-names-file-replaces-the-built-in-names-instead-of-adding-to-them) | Key names | `Keys.ReadJson` replaces the built-in names with the file's instead of merging, so any key the file leaves out shows as `?` and its code; a user's own 0.8556.30292 copy leaves out OEM102 (`?226`) and 11 others (reproduced) | Low |
 | [KNP](issues.md#knp--key-names-file-is-read-from-the-working-directory) | Key names | `Keys.ReadJson` uses the working directory instead of the exe folder, and a bad or unwritable file there stops startup | Medium |

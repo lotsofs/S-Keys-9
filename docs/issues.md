@@ -4,29 +4,17 @@ Detail for the items in [TODO.md](TODO.md).
 
 Dependencies between plans:
 
-- YAX, NEG and DWL all change how heatmap cells are computed. Doing them together means the saved format changes only once.
+- NEG and DWL both change how heatmap cells are computed. `mousemovemap.log` is new in the next release, so ship them in that release too, and its saved format changes only once.
 - RAC decides how the mouse-move thread shares data. MTS builds on that choice, and goes away if RAC drops the thread.
 - MKN, KNP and SRN all change how key names load, so do them together.
 - TMR builds on HKT, which may change what the hook timeout measures.
-
-## YAX — Movement heatmap records x on both axes
-
-`Input.MouseMoveProcessing` ([Input.cs](../SKeys9/SKeys9/Input.cs)) packs the cell key as `S.Bits.CombineInt(e.X / 100, e.X / 100)`. Every entry in `mousemove2map.log` therefore has the x cell in both halves, and the y position is never saved. Entries that are already saved can't be repaired.
-
-**Evidence:** reproduced 2026-10-21. The built exe was called by reflection: `MouseMoveProcessing` with a move to (250, 730) stored the key `00020002`. The correct key is `00020007`.
-
-**Plan:** pass the y cell as the second argument (or the previous position's cell, see DWL). Then decide what happens to existing `mousemove2map.log` files. One option is to keep adding to them, so the old entries stay on the x = y diagonal. The other is to save to a new file name so old and new data don't mix. That choice is the user's.
-
-**Verify:** repeat the reflection check and get `00020007`. Then run the app with movement logging on, move the mouse up and down, and check that the log gains keys whose two halves differ.
-
-**Docs when done:** CLAUDE.md § Persistence, if the file name changes. Users will notice the change, so it needs a changelog entry.
 
 ## NEG — Heatmap keys break for negative screen coordinates
 
 `S.Bits.CombineInt(a, b)` ([Bits.cs](../SKeys9/SKeys9/FrameworkS/Bits.cs)) returns `a << 16 | b` without masking `b`. A negative `b` has all of its high bits set, so it overwrites `a`. Screens to the left of or above the primary monitor have negative coordinates:
 
 - **Click map:** every cell with a negative y and the same y cell packs to the same key, whatever its x.
-- **Movement map:** once YAX is fixed, the same happens there.
+- **Movement map:** the same happens there.
 
 Integer division also truncates toward zero, so the two cells on either side of 0 merge into one double-width cell: −9 to 9 px for clicks, −99 to 99 px for movement.
 
@@ -36,7 +24,7 @@ Integer division also truncates toward zero, so the two cells on either side of 
 
 **Verify:** by reflection, `CombineInt(3, -1)` returns `0003FFFF` and `CombineInt(7, -1)` returns `0007FFFF`. Then click on a monitor above the primary and check that the click log gains distinct keys.
 
-**Docs when done:** CLAUDE.md § Persistence (say that the halves are signed). Changelog entry, with YAX.
+**Docs when done:** CLAUDE.md § Persistence (say that the halves are signed). Changelog entry.
 
 ## DWL — Mouse rest time is credited to the wrong cell
 
@@ -44,11 +32,11 @@ Integer division also truncates toward zero, so the two cells on either side of 
 
 **Evidence:** read 2026-10-21. A code comment on that line noted the first part.
 
-**Plan:** credit the time to the cell of `_oldMouseX` and `_oldMouseY`. Carry the hook's event timestamp (`MSLLHOOKSTRUCT.time`, in ms) in `MoveEventArgs`, and use the difference between successive timestamps instead of the stopwatch. The timestamp wraps after about 49.7 days, so subtract it as unchecked `uint`. Do this together with YAX and NEG.
+**Plan:** credit the time to the cell of `_oldMouseX` and `_oldMouseY`. Carry the hook's event timestamp (`MSLLHOOKSTRUCT.time`, in ms) in `MoveEventArgs`, and use the difference between successive timestamps instead of the stopwatch. The timestamp wraps after about 49.7 days, so subtract it as unchecked `uint`. Do this together with NEG.
 
 **Verify:** by reflection, feed two moves with known timestamps and check that the gap between them lands in the first position's cell.
 
-**Docs when done:** none in CLAUDE.md. Changelog entry, with YAX.
+**Docs when done:** none in CLAUDE.md. Changelog entry.
 
 ## RAC — Mouse-move thread races the UI thread on the statistics
 
@@ -62,7 +50,7 @@ The UI thread also writes the first two on every key press, and `SaveFiles` read
 
 A save can also collide with the thread. If `SaveFiles` is enumerating `_mousePos` while the thread adds a cell, it throws `InvalidOperationException`. `SaveFiles` catches that and abandons the rest of the save, with these effects:
 
-- `mousemove2map.log` is left part-written, because opening the `StreamWriter` already truncated it.
+- `mousemovemap.log` is left part-written, because opening the `StreamWriter` already truncated it.
 - `mouseinteraction2map.log` isn't saved that round.
 - If the abandoned save was the one on exit, the next start loads the short file. The `.log.bak` copy only holds the data as of the last start.
 
@@ -72,9 +60,9 @@ A save can also collide with the thread. If `SaveFiles` is enumerating `_mousePo
 
 The alternative is to drop the thread and process moves on the UI thread. Each event is cheap, but the thread was added so that short hangs wouldn't stall input. Choose between these here, since MTS follows from the choice.
 
-**Verify:** use a debug build with the autosave interval cut to about 1 s. Run it with movement logging on and move the mouse constantly for a few minutes. "Collection modified" must never appear in the debug output, and every saved `mousemove2map.log` must load back with the same number of lines.
+**Verify:** use a debug build with the autosave interval cut to about 1 s. Run it with movement logging on and move the mouse constantly for a few minutes. "Collection modified" must never appear in the debug output, and every saved `mousemovemap.log` must load back with the same number of lines.
 
-**Docs when done:** CLAUDE.md § Threading. Changelog entry, because users with movement logging on stop losing parts of `mousemove2map.log`.
+**Docs when done:** CLAUDE.md § Threading. Changelog entry, because users with movement logging on stop losing parts of `mousemovemap.log`.
 
 ## MTS — Mouse-move thread polls forever and cannot be stopped
 

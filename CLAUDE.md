@@ -61,7 +61,7 @@ Mouse-move events are queued (`ConcurrentQueue`) and processed on a background t
 |---|---|
 | `skeys9.ini` | `Key=Value` settings. Colours are 6-digit hex RGB, and alpha is forced to ff on load |
 | `count.log`, `duration.log` | One line per VK code 00–FF: `XX <count>` / `XX <TimeSpan>` |
-| `mousemove2map.log`, `mouseinteraction2map.log` | `XXXXXXXX <hex value>`. The key is a screen cell packed by `S.Bits.CombineInt` (x in the high 16 bits, y in the low). Cells are 100 px for movement and 10 px for clicks |
+| `mousemovemap.log`, `mouseinteraction2map.log` | `XXXXXXXX <hex value>`. The key is a screen cell packed by `S.Bits.CombineInt` (x in the high 16 bits, y in the low). Cells are 100 px for movement and 10 px for clicks |
 
 - After loading the logs at startup, the app immediately saves them again and copies each one to `*.log.bak`. `ReadSettings` writes `skeys9.ini.bak`.
 - Logs autosave every 60 s and on exit: on `Application.ApplicationExit`, and on `WM_QUERYENDSESSION` in `MainForm.WndProc` for Windows shutdown.
