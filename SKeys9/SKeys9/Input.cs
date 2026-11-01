@@ -181,6 +181,21 @@ namespace SKeys9 {
 		
 		#endregion
 
+		#region hook health
+
+		/// <summary>
+		/// The hooks were reinstalled because one of them missed input
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		internal void OnHooksReinstalled(object sender, EventArgs e) {
+			if (Configuration.LogButtons) {
+				S.Dictionaries.IncrementValue(_inputsCount, 0x9D, 1); // hijacked an unassigned VK code's slot
+			}
+		}
+
+		#endregion
+
 		#region mouse movement stuff
 
 		/// <summary>

@@ -30,7 +30,7 @@ The build writes `SKeys9/SKeys9/bin/<Config>/SKeys9.exe`. There are no tests and
 
 All source is in `SKeys9/SKeys9/`. Input flows one way: `Hooks` → `Input` → `MainForm` / `CounterForm`.
 
-- **`Hooks`** P/Invokes `SetWindowsHookEx` (`WH_KEYBOARD_LL`, `WH_MOUSE_LL`) and turns raw messages into events that carry integer key codes (`EventArgs.cs`). It drops key auto-repeat by tracking what is already down. The callbacks run on the UI thread's message loop and must stay fast, because Windows silently removes a low-level hook whose callback is slow. A 5 s timer reinstalls both hooks whenever no keyboard event has arrived in that time.
+- **`Hooks`** P/Invokes `SetWindowsHookEx` (`WH_KEYBOARD_LL`, `WH_MOUSE_LL`) and turns raw messages into events that carry integer key codes (`EventArgs.cs`). It drops key auto-repeat by tracking what is already down. The callbacks run on the UI thread's message loop and must stay fast, because Windows silently removes a low-level hook whose callback is slow. Windows can't be asked whether a hook is still installed, so a 1 s timer compares `GetLastInputInfo` with the last callback, and reinstalls both hooks if input arrived that neither saw.
 - **`Input`** holds all state. It maps codes to display names and keeps the held-keys list and the scroll counters for each direction, which clear 300 ms after the last scroll. It also updates the statistics and raises `OnKeysChanged` for the displays. The `ChangeEventArgs` it sends holds references to the live list and counters, not copies.
 - **`MainForm`** owns everything else. It wires the hooks to `Input`, renders the held keys, and handles the tray, exit and context-menu behaviour. Startup order matters: `Configuration.SetDirectories` → `ReadSettings` → `AddHooks` (which constructs `Input`, and `Input` loads the logs) → `Keys.ReadJson`.
 - **`CounterForm`** is a press counter for the current session. It gets its counts by comparing each `ChangeEventArgs` with its own copy of the previous state, not from hook events, and is independent of the saved statistics.
@@ -43,7 +43,7 @@ Everything is keyed by Windows virtual-key (VK) code, 0x00–0xFF. Mouse buttons
 - 0x97–0x9A: scroll up, down, left and right (`ScrollEventArgs.Directions` + 0x97)
 - 0x9B: mouse movement, as a distance in centipixels
 - 0x9C: the overflow counter for 0x9B
-- 0x9D: `DbgHookTimeout`
+- 0x9D: `DbgHookTimeout`, the number of hook reinstalls, counted while `LogButtons` is on
 
 A new pseudo-input needs a free slot and a name in both `Keys.KeyNames` and `KeyNames.json`.
 

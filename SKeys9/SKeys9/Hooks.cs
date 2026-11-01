@@ -27,6 +27,8 @@ namespace SKeys9 {
 		private const int WM_MOUSEHWHEEL = 0x20E;
 		private const int WM_MOUSEMOVE = 0x200;
 
+		private const int HookCheckMargin = 100; // ms. Input this recent may still be on its way to a callback
+
 		private List<int> _currentlyPressed = new List<int>();
 
 		public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
@@ -38,8 +40,10 @@ namespace SKeys9 {
 		public event EventHandler<MouseEventArgs> OnMouseUp;
 		public event EventHandler<ScrollEventArgs> OnMouseScroll;
 		public event EventHandler<MoveEventArgs> OnMouseMove;
+		public event EventHandler OnHooksReinstalled;
 
-		Timer _hookTimeoutTimer;
+		Timer _hookCheckTimer;
+		uint _lastCallback;
 
 		private LowLevelKeyboardProc _kbProc;
 		private IntPtr _kbHookID = IntPtr.Zero;
@@ -74,6 +78,19 @@ namespace SKeys9 {
 		[DllImport("user32.dll", SetLastError = true)]
 		private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
 
+		/// <summary>
+		/// When the last input arrived, whether or not a hook saw it
+		/// </summary>
+		[DllImport("user32.dll", SetLastError = true)]
+		[return: MarshalAs(UnmanagedType.Bool)]
+		private static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
+
+		[StructLayout(LayoutKind.Sequential)]
+		private struct LASTINPUTINFO {
+			public uint cbSize;
+			public uint dwTime;
+		}
+
 		#endregion
 
 		#region DLLImports processes
@@ -96,10 +113,12 @@ namespace SKeys9 {
 			_kbProc = KbHookCallback;
 			_mProc = MHookCallback;
 
-			_hookTimeoutTimer = new Timer();
-			_hookTimeoutTimer.Interval = 5000;
-			_hookTimeoutTimer.Tick += OnHookTimeout;
-			_hookTimeoutTimer.Start();
+			_lastCallback = unchecked((uint)Environment.TickCount);
+
+			_hookCheckTimer = new Timer();
+			_hookCheckTimer.Interval = 1000;
+			_hookCheckTimer.Tick += OnHookCheck;
+			_hookCheckTimer.Start();
 		}
 
 		#region enable/disable
@@ -137,15 +156,27 @@ namespace SKeys9 {
 		#endregion
 
 		/// <summary>
-		/// If hook stopped working
+		/// Windows can't be asked whether a hook is still installed, so this looks for the symptom:
+		/// input newer than the last callback, which neither hook saw. Reinstalls both if there is any
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		public void OnHookTimeout(object sender, EventArgs e) {
-			_hookTimeoutTimer.Stop();
-			_hookTimeoutTimer.Start();
-			DisableHooks();
-			EnableHooks();
+		public void OnHookCheck(object sender, EventArgs e) {
+			LASTINPUTINFO lastInput = new LASTINPUTINFO();
+			lastInput.cbSize = (uint)Marshal.SizeOf(typeof(LASTINPUTINFO));
+			if (!GetLastInputInfo(ref lastInput)) {
+				return;
+			}
+
+			uint now = unchecked((uint)Environment.TickCount);
+			bool settled = unchecked((int)(now - lastInput.dwTime)) >= HookCheckMargin;
+			bool unseen = unchecked((int)(lastInput.dwTime - _lastCallback)) >= HookCheckMargin;
+			if (settled && unseen) {
+				_lastCallback = now;
+				DisableHooks();
+				EnableHooks();
+				OnHooksReinstalled?.Invoke(this, EventArgs.Empty);
+			}
 		}
 
 		void MarkMouseButtonAsPressed(MSLLHOOKSTRUCT hookStruct, MouseEventArgs.Buttons button, bool pressed) {
@@ -169,6 +200,8 @@ namespace SKeys9 {
 		/// <param name="lParam">the key being pressed</param>
 		/// <returns></returns>
 		private IntPtr KbHookCallback(int nCode, IntPtr wParam, IntPtr lParam) {
+			_lastCallback = unchecked((uint)Environment.TickCount);
+
 			if (nCode < 0) {
 				return CallNextHookEx(_kbHookID, nCode, wParam, lParam);
 			}
@@ -191,8 +224,6 @@ namespace SKeys9 {
 					OnKeyUp?.Invoke(this, new KeyEventArgs(vkCode));
 					break;
 			}
-			_hookTimeoutTimer.Stop();
-			_hookTimeoutTimer.Start();
 
 			return CallNextHookEx(_kbHookID, nCode, wParam, lParam);
 		}
@@ -205,6 +236,7 @@ namespace SKeys9 {
 		/// <param name="lParam"></param>
 		/// <returns></returns>
 		private IntPtr MHookCallback(int nCode, IntPtr wParam, IntPtr lParam) {
+			_lastCallback = unchecked((uint)Environment.TickCount);
 
 			if (nCode < 0) {
 				return CallNextHookEx(_kbHookID, nCode, wParam, lParam);

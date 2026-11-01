@@ -6,7 +6,6 @@ Dependencies between plans:
 
 - RAC decides how the mouse-move thread shares data. MTS builds on that choice, and goes away if RAC drops the thread.
 - MKN, KNP and SRN all change how key names load, so do them together.
-- TMR builds on HKT, which may change what the hook timeout measures.
 
 ## RAC — Mouse-move thread races the UI thread on the statistics
 
@@ -84,32 +83,30 @@ Neither `File.WriteAllText` nor `JsonConvert.DeserializeObject` has any error ha
 
 **Docs when done:** CLAUDE.md § Architecture (the startup order). Changelog entry.
 
-## HKT — Hook watchdog only watches the keyboard
+## WDG — Hook watchdog not yet seen on real use
 
-`Hooks.KbHookCallback` restarts the 5 s `_hookTimeoutTimer`, but `MHookCallback` does not ([Hooks.cs](../SKeys9/SKeys9/Hooks.cs)). When the timer fires, `OnHookTimeout` unhooks and reinstalls both hooks. This has two effects:
+`Hooks.OnHookCheck` ([Hooks.cs](../SKeys9/SKeys9/Hooks.cs)) reinstalls both hooks when `GetLastInputInfo` reports input newer than the last callback. Two things about it are still unproven:
 
-- **Mouse-only use:** both hooks are reinstalled every 5 s.
-- **While typing:** a mouse hook that Windows has removed is never noticed.
+- **False reinstalls:** every test run used injected input. Hardware input might update `GetLastInputInfo` without reaching a hook, and each such case adds to the `9D` line of `count.log`. Typing at the lock screen or a UAC prompt is expected to do this.
+- **A real drop:** recovery was only tested by unhooking behind `Hooks`' back, not with Windows removing a hook.
 
-The pseudo-key 0x9D `DbgHookTimeout` has a name, but nothing counts it, so reinstalls don't show anywhere.
+**Evidence:** reproduced 2026-11-01. With no input from the user, injected activity caused no reinstalls, and a simulated dead hook recovered within 2.3 s for the mouse and 0.6 s for the keyboard. The real exe, suspended while 9 moves were injected, kept its hook: each move waited out the hook timeout (about 310 ms), so a real drop wasn't seen. It reinstalled once on resuming, because it had missed that input, and `count.log` recorded it.
 
-**Evidence:** read 2026-10-21.
+**Plan:** use the app normally for a day with Button Presses logging on, then read the `9D` line. If it climbs during ordinary use, raise `HookCheckMargin` or rethink the check. Note any time input stops showing and then comes back.
 
-**Plan:** record the time of the last callback for each hook (`Environment.TickCount`). Tick the timer every second, and reinstall only a hook whose last callback is older than the timeout. Raise an event on each reinstall so that `Input` can count it under 0x9D.
+**Verify:** the `9D` line stays near 0 in normal use, apart from time at the lock screen or UAC prompts.
 
-**Verify:** use only the mouse for 30 s, and the mouse hook is not reinstalled (today both are, about six times). Type for 30 s with the mouse still, and only the mouse hook is reinstalled.
+**Docs when done:** none.
 
-**Docs when done:** CLAUDE.md § Architecture (the watchdog sentence in the `Hooks` bullet). Changelog entry: mouse input now recovers if Windows drops the hook while you type, and `count.log` gains a hook-reinstall count.
+## TMR — Hook check interval and scroll clear delay are hardcoded
 
-## TMR — Hook timeout and scroll clear delay are hardcoded
+The hook check interval is 1000 ms in the `Hooks` constructor ([Hooks.cs](../SKeys9/SKeys9/Hooks.cs)). The delay before scroll counters clear is 300 ms in `Input.StartScrollRemoveTimer` ([Input.cs](../SKeys9/SKeys9/Input.cs)). Both should be settings.
 
-The hook timeout is 5000 ms in the `Hooks` constructor ([Hooks.cs](../SKeys9/SKeys9/Hooks.cs)). The delay before scroll counters clear is 300 ms in `Input.StartScrollRemoveTimer` ([Input.cs](../SKeys9/SKeys9/Input.cs)). Both should be settings.
-
-**Plan:** for each value, add a static field in `Configuration`, a `case` in `LoadSettings` and a line in `ApplySettings`. Set the timer intervals from these fields. `Hooks` and `Input` are created after `ReadSettings`, so startup already works, but a change made in the settings window must also update the running timers. Open decision: offer controls in `SettingsForm`, or only `skeys9.ini` keys. Do this after HKT.
+**Plan:** for each value, add a static field in `Configuration`, a `case` in `LoadSettings` and a line in `ApplySettings`. Set the timer intervals from these fields. `Hooks` and `Input` are created after `ReadSettings`, so startup already works, but a change made in the settings window must also update the running timers. Open decision: offer controls in `SettingsForm`, or only `skeys9.ini` keys.
 
 **Verify:** set both values in `skeys9.ini` and restart. Scroll counters then linger for the set time. Press OK in the settings window, and both values are still in the file.
 
-**Docs when done:** CLAUDE.md § Architecture (5 s and 300 ms become defaults). Changelog entry for the new settings.
+**Docs when done:** CLAUDE.md § Architecture (1 s and 300 ms become defaults). Changelog entry for the new settings.
 
 ## CNR — Settings Cancel and close do not always revert
 

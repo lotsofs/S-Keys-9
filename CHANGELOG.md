@@ -10,6 +10,7 @@ What changed for users of S Keys 9, per release. Downloads are on the [releases 
 - Mouse movement logging now saves the vertical position as well as the horizontal one, and counts the time the mouse rests towards the spot where it rested. The log is now `mousemovemap.log`, which starts empty. `mousemove2map.log` is no longer used, so you can keep or delete it.
 - Mouse click and movement logging now saves the right position on monitors above or to the left of your main monitor. The click log is now `mouseinteractionmap.log`, which starts empty. `mouseinteraction2map.log` is no longer used, so you can keep or delete it.
 - Turning on mouse movement logging while S Keys 9 is running no longer adds a false jump to the distance, or counts the time logging was off as rest in one spot.
+- Mouse input now comes back if Windows cuts S Keys 9 off while you're typing. `count.log` counts how often S Keys 9 has to reconnect, on the `9D` line.
 
 ## 0.8556.30292 (2023-06-05)
 

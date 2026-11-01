@@ -40,6 +40,7 @@ namespace SKeys9 {
 			_hooks.OnMouseUp += _input.OnMouseUp;
 			_hooks.OnMouseScroll += _input.OnMouseScroll;
 			_hooks.OnMouseMove += _input.OnMouseMove;
+			_hooks.OnHooksReinstalled += _input.OnHooksReinstalled;
 
 			_hooks.EnableHooks();
 		}
