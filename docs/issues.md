@@ -4,25 +4,13 @@ Detail for the items in [TODO.md](TODO.md).
 
 Dependencies between plans:
 
-- MKN, KNP and SRN all change how key names load, so do them together.
-
-## MKN — Key names file replaces the built-in names instead of adding to them
-
-`Keys.ReadJson` ([Keys.cs](../SKeys9/SKeys9/Keys.cs)) replaces the whole built-in table with the contents of `keyNames.json`. So any code the file leaves out shows as `?` followed by its decimal code. This affects users who keep their own copy of the `KeyNames.json` shipped in 0.8556.30292, for example because they've customised it. That file leaves out 12 built-in names, so OEM102 (0xE2), for one, shows as `?226`. `KeyNames.json` also names 0xFF as `0xFF`, which the built-in table leaves unnamed.
-
-**Evidence:** reproduced 2026-10-21 by loading the released exe and its own `KeyNames.json` from the release zip. After `ReadJson` ran, 0xE2, 0x15, 0x1C, 0x6C and 0xE5 had no name.
-
-**Plan:** make `ReadJson` lay the file's entries over the built-in table instead of replacing it, so a missing entry keeps its built-in name. Open decision: whether 0xFF keeps the name `0xFF`. Do this together with KNP and SRN.
-
-**Verify:** load the 0.8556.30292 `KeyNames.json` from the release zip with the built exe by reflection, and check that 0xE2 is `OEM102`. Then delete an entry from a copy of the file, start the app and press that key: it shows its built-in name.
-
-**Docs when done:** CLAUDE.md § Key codes (say that the file overrides the built-in names rather than replacing them). Changelog entry, because the names come back even in users' own copies.
+- KNP and SRN both change how key names load, so do them together.
 
 ## KNP — Key names file is read from the working directory
 
 `Keys.ReadJson` ([Keys.cs](../SKeys9/SKeys9/Keys.cs)) builds its path from `Environment.CurrentDirectory`. Every other file uses the exe's folder. When the app is started from another working directory, it ignores the user's `keyNames.json` and writes a fresh defaults file into that directory instead.
 
-Neither `File.WriteAllText` nor `JsonConvert.DeserializeObject` has any error handling, and both run inside the `MainForm` constructor. An unwritable working directory or a malformed file would therefore stop the app from starting. An example of an unwritable directory is `C:\Windows\System32`, which a Task Scheduler task uses when it has no start folder.
+Neither `File.WriteAllText` nor `JsonConvert.DeserializeObject` has any error handling, and both run inside the `MainForm` constructor. An unwritable working directory or a malformed file would therefore stop the app from starting. An example of an unwritable directory is `C:\Windows\System32`, which a Task Scheduler task uses when it has no start folder. A name set to `null` in the file gets past loading, and would then throw on a key press or scroll (read only).
 
 **Evidence:** working-directory use reproduced 2026-10-21. With the exe in `bin/Debug` and the working directory set to a scratch folder, `ReadJson` created `keyNames.json` in the scratch folder. The startup failure is read only.
 
@@ -38,7 +26,7 @@ Neither `File.WriteAllText` nor `JsonConvert.DeserializeObject` has any error ha
 
 **Evidence:** reproduced 2026-10-21 by calling the built exe by reflection. After `ScrUp` was renamed to `WheelUp` in `keyNames.json`, one scroll up and a reset left `WheelUp = 1`, and the four built-in names at 0.
 
-**Plan:** call `Keys.ReadJson` before `AddHooks`. Initialise the counters with the same name-or-`?code` lookup that `AddScroll` uses, so a JSON file without these codes doesn't throw. Make `ResetScrolls` clear every entry instead of fixed names.
+**Plan:** call `Keys.ReadJson` before `AddHooks`, so the counters are created with the file's names. Make `ResetScrolls` clear every entry instead of fixed names.
 
 **Verify:** repeat the reflection check and get `WheelUp = 0` after the reset. Then, in the app, rename a scroll direction, scroll, and see the counter disappear after the clear delay.
 

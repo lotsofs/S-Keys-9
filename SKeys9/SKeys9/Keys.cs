@@ -277,9 +277,12 @@ namespace SKeys9 {
 			//FC // Reserved
 			{ 0xFD, "PA1" },
 			{ 0xFE, "Clear" },
-			//FF // -
+			{ 0xFF, "0xFF" },
 		};
-	
+
+		/// <summary>
+		/// Lays the names in the file over the built-in ones, so a code the file leaves out keeps its built-in name
+		/// </summary>
 		public static void ReadJson() {
 			string filePath = Path.Combine(Environment.CurrentDirectory, "keyNames.json");
 			if (!File.Exists(filePath)) {
@@ -287,7 +290,13 @@ namespace SKeys9 {
 				File.WriteAllText(filePath, json);
 			}
 			string file = File.ReadAllText(filePath);
-			KeyNames = JsonConvert.DeserializeObject<Dictionary<int, string>>(file);
+			Dictionary<int, string> names = JsonConvert.DeserializeObject<Dictionary<int, string>>(file);
+			if (names == null) { // the file is empty
+				return;
+			}
+			foreach (KeyValuePair<int, string> name in names) {
+				KeyNames[name.Key] = name.Value;
+			}
 			//Process.Start(dir);
 		}
 	}

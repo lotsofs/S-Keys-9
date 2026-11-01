@@ -48,9 +48,9 @@ Everything is keyed by Windows virtual-key (VK) code, 0x00–0xFF. Mouse buttons
 - 0x9C: the overflow counter for 0x9B
 - 0x9D: `DbgHookTimeout`, the number of hook reinstalls, counted while `LogButtons` is on
 
-A new pseudo-input needs a free slot and a name in both `Keys.KeyNames` and `KeyNames.json`.
+A new pseudo-input needs a free slot and a name in `Keys.KeyNames`, and in `KeyNames.json` to keep that sample complete.
 
-Display names come from `Keys.KeyNames`. `Keys.ReadJson` replaces it with the contents of `keyNames.json`, whose keys are decimal VK codes, and writes the defaults to that file first if it is missing. It reads from `Environment.CurrentDirectory`, not the exe directory that the other files use. In `Input`, the held-keys list and the scroll counters are keyed by display name, not by code.
+Display names come from `Keys.KeyNames`. `Keys.ReadJson` lays the contents of `keyNames.json` over it, so a code the file leaves out keeps its built-in name. The file's keys are decimal VK codes, and `ReadJson` writes the defaults to it first if it is missing. It reads from `Environment.CurrentDirectory`, not the exe directory that the other files use. In `Input`, the held-keys list and the scroll counters are keyed by display name, not by code.
 
 ### Threading
 
