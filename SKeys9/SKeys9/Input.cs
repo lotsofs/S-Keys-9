@@ -25,12 +25,7 @@ namespace SKeys9 {
 		int _logMovementChanges;
 
 		List<string> _currentlyPressed = new List<string>();
-		Dictionary<string, int> _currentScrollCount = new Dictionary<string, int> {
-			{ Keys.KeyNames[0x97], 0 }, 
-			{ Keys.KeyNames[0x98], 0 }, 
-			{ Keys.KeyNames[0x99], 0 }, 
-			{ Keys.KeyNames[0x9A], 0 }, 
-		};
+		Dictionary<string, int> _currentScrollCount = new Dictionary<string, int>();
 
 		public event EventHandler<ChangeEventArgs> OnKeysChanged;
 
@@ -41,6 +36,7 @@ namespace SKeys9 {
 		internal Input() {
 			LoadFiles();
 			StartAutosaveTimer();
+			AddScrollCounters();
 			StartScrollRemoveTimer();
 			StartMouseMovementProcessing();
 		}
@@ -73,6 +69,15 @@ namespace SKeys9 {
 		#region mouse scrollwheel counter
 
 		/// <summary>
+		/// Adds a counter for each scroll direction, in display order. Directions with the same name share one
+		/// </summary>
+		void AddScrollCounters() {
+			for (int direction = 0x97; direction <= 0x9A; direction++) {
+				_currentScrollCount[Keys.KeyNames[direction]] = 0;
+			}
+		}
+
+		/// <summary>
 		/// Starts a timer that resets scroll wheel count back to 0 and removes it from the display
 		/// </summary>
 		void StartScrollRemoveTimer() {
@@ -88,10 +93,10 @@ namespace SKeys9 {
 		/// <param name="e"></param>
 		void ResetScrolls(object sender, EventArgs e) {
 			_scrollRemoveTimer.Stop();
-			_currentScrollCount["ScrUp"] = 0;
-			_currentScrollCount["ScrDn"] = 0;
-			_currentScrollCount["ScrLeft"] = 0;
-			_currentScrollCount["ScrRight"] = 0;
+			// zeroed, not removed, because CounterForm compares each counter with its previous value
+			foreach (string direction in new List<string>(_currentScrollCount.Keys)) {
+				_currentScrollCount[direction] = 0;
+			}
 			OnKeysChanged?.Invoke(this, new ChangeEventArgs(_currentlyPressed, _currentScrollCount));
 		}
 		

@@ -22,6 +22,7 @@ What changed for users of S Keys 9, per release. Downloads are on the [releases 
 - Saving can no longer leave a log cut short.
 - Mouse movement from just before closing S Keys 9 is now saved.
 - S Keys 9 no longer fails to start when `KeyNames.json` is broken, or when its start folder can't be written to. A broken file gets a message naming the problem, and the normal key names are used until it's fixed.
+- A scroll direction you renamed in `KeyNames.json` now clears from the display like the others, instead of counting up forever.
 
 ## 0.8556.30292 (2023-06-05)
 

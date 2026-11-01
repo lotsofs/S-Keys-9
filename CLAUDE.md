@@ -34,7 +34,7 @@ All source is in `SKeys9/SKeys9/`. Input flows one way: `Hooks` → `Input` → 
 
   Windows keeps input from hooks on the lock screen and while an elevated window has focus, so the timer doesn't reinstall then. Instead it logs one line naming the cause, each time input is missed that way. A reinstall line can still be harmless: another program's slow hook seems to cause the odd one, and a cancelled shutdown should, because the app unhooks as soon as Windows asks to shut down.
 - **`Input`** holds all state. It maps codes to display names and keeps the held-keys list and the scroll counters for each direction, which clear 300 ms after the last scroll. It also updates the statistics and raises `OnKeysChanged` for the displays. The `ChangeEventArgs` it sends holds references to the live list and counters, not copies.
-- **`MainForm`** owns everything else. It wires the hooks to `Input`, renders the held keys, and handles the tray, exit and context-menu behaviour. Startup order matters: `Configuration.SetDirectories` (in `Program.Main`) → `ReadSettings` → `AddHooks` (which constructs `Input`, and `Input` loads the logs) → `Keys.ReadJson`.
+- **`MainForm`** owns everything else. It wires the hooks to `Input`, renders the held keys, and handles the tray, exit and context-menu behaviour. Startup order matters: `Configuration.SetDirectories` (in `Program.Main`) → `ReadSettings` → `Keys.ReadJson` → `AddHooks` (which constructs `Input`, and `Input` loads the logs and names its scroll counters).
 - **`CounterForm`** is a press counter for the current session. It gets its counts by comparing each `ChangeEventArgs` with its own copy of the previous state, not from hook events, and is independent of the saved statistics.
 - **`Log`** appends timestamped lines to `debuglog.log` and never throws. `Program` sends it unhandled errors, on top of the standard error dialog for the UI thread. `Hooks` sends it each reinstall and each case of input not reaching the hooks, `Input` each log it couldn't update, and `Keys` each problem with `KeyNames.json`.
 - **`FrameworkS/`** holds small helpers in namespace `S`: the `S.Dictionaries.IncrementValue` overloads, `S.Bits.CombineInt` and `S.Math`.
@@ -50,7 +50,7 @@ Everything is keyed by Windows virtual-key (VK) code, 0x00–0xFF. Mouse buttons
 
 A new pseudo-input needs a free slot and a name in `Keys.KeyNames`, and in `KeyNames.json` to keep that sample complete.
 
-Display names come from `Keys.KeyNames`. `Keys.ReadJson` lays the contents of `KeyNames.json` over it, so a code the file leaves out or sets to `null` keeps its built-in name. The file's keys are decimal VK codes. If the file is missing, `ReadJson` writes the defaults to it. If it can't be read or parsed, the built-in names stay, and `ReadJson` logs the problem and shows it in a dialog, on every start until the file is fixed. In `Input`, the held-keys list and the scroll counters are keyed by display name, not by code.
+Display names come from `Keys.KeyNames`. `Keys.ReadJson` lays the contents of `KeyNames.json` over it, so a code the file leaves out or sets to `null` keeps its built-in name. The file's keys are decimal VK codes. If the file is missing, `ReadJson` writes the defaults to it. If it can't be read or parsed, the built-in names stay, and `ReadJson` logs the problem and shows it in a dialog, on every start until the file is fixed. In `Input`, the held-keys list and the scroll counters are keyed by display name, not by code, so two scroll directions with the same name share a counter.
 
 ### Threading
 
