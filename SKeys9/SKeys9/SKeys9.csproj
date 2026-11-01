@@ -87,6 +87,7 @@
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Keys.cs" />
+    <Compile Include="Log.cs" />
     <Compile Include="FrameworkS\Math.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Program.cs" />

@@ -13,7 +13,6 @@ namespace SKeys9 {
 
 		public MainForm() {
 			InitializeComponent();
-			Configuration.SetDirectories();
 			Configuration.ReadSettings();
 			UpdateAppearance();
 

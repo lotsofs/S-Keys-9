@@ -11,6 +11,7 @@ namespace SKeys9 {
 		internal static string MousePath;
 		internal static string InteractionPath;
 		internal static string SettingsPath;
+		internal static string DebugLogPath;
 
 		internal static bool MinimizeToTray = true;
 		internal static bool ExitToTray = false;
@@ -63,6 +64,7 @@ namespace SKeys9 {
 			MousePath = Path.Combine(DirectoryPath, "mousemovemap.log");
 			InteractionPath = Path.Combine(DirectoryPath, "mouseinteractionmap.log");
 			SettingsPath = Path.Combine(DirectoryPath, "skeys9.ini");
+			DebugLogPath = Path.Combine(DirectoryPath, "debuglog.log");
 
 			if (!Directory.Exists(DirectoryPath)) {
 				Directory.CreateDirectory(DirectoryPath);

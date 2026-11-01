@@ -32,8 +32,9 @@ All source is in `SKeys9/SKeys9/`. Input flows one way: `Hooks` → `Input` → 
 
 - **`Hooks`** P/Invokes `SetWindowsHookEx` (`WH_KEYBOARD_LL`, `WH_MOUSE_LL`) and turns raw messages into events that carry integer key codes (`EventArgs.cs`). It drops key auto-repeat by tracking what is already down. The callbacks run on the UI thread's message loop and must stay fast, because Windows silently removes a low-level hook whose callback is slow. Windows can't be asked whether a hook is still installed, so a 1 s timer compares `GetLastInputInfo` with the last callback, and reinstalls both hooks if input arrived that neither saw.
 - **`Input`** holds all state. It maps codes to display names and keeps the held-keys list and the scroll counters for each direction, which clear 300 ms after the last scroll. It also updates the statistics and raises `OnKeysChanged` for the displays. The `ChangeEventArgs` it sends holds references to the live list and counters, not copies.
-- **`MainForm`** owns everything else. It wires the hooks to `Input`, renders the held keys, and handles the tray, exit and context-menu behaviour. Startup order matters: `Configuration.SetDirectories` → `ReadSettings` → `AddHooks` (which constructs `Input`, and `Input` loads the logs) → `Keys.ReadJson`.
+- **`MainForm`** owns everything else. It wires the hooks to `Input`, renders the held keys, and handles the tray, exit and context-menu behaviour. Startup order matters: `Configuration.SetDirectories` (in `Program.Main`) → `ReadSettings` → `AddHooks` (which constructs `Input`, and `Input` loads the logs) → `Keys.ReadJson`.
 - **`CounterForm`** is a press counter for the current session. It gets its counts by comparing each `ChangeEventArgs` with its own copy of the previous state, not from hook events, and is independent of the saved statistics.
+- **`Log`** appends timestamped lines to `debuglog.log` and never throws. `Program` sends it unhandled errors, on top of the standard error dialog for the UI thread. `Hooks` sends it each reinstall, and `Input` each cancelled save.
 - **`FrameworkS/`** holds small helpers in namespace `S`: the `S.Dictionaries.IncrementValue` overloads, `S.Bits.CombineInt` and `S.Math`.
 
 ### Key codes
@@ -62,6 +63,7 @@ Mouse-move events are queued (`ConcurrentQueue`) and processed on a background t
 | `skeys9.ini` | `Key=Value` settings. Colours are 6-digit hex RGB, and alpha is forced to ff on load |
 | `count.log`, `duration.log` | One line per VK code 00–FF: `XX <count>` / `XX <TimeSpan>` |
 | `mousemovemap.log`, `mouseinteractionmap.log` | `XXXXXXXX <hex value>`. The key is a screen cell packed by `S.Bits.CombineInt` (x in the high 16 bits, y in the low). Both halves are signed, because screens left of or above the primary have negative coordinates. Cells are 100 px for movement and 10 px for clicks, and coordinates round down to a cell (`S.Math.FloorDivide`) |
+| `debuglog.log` | Timestamped lines for users to open when something goes wrong: errors, cancelled saves and hook reinstalls. It only appears once there's something to record, and has no setting or size limit |
 
 - After loading the logs at startup, the app immediately saves them again and copies each one to `*.log.bak`. `ReadSettings` writes `skeys9.ini.bak`.
 - Logs autosave every 60 s and on exit: on `Application.ApplicationExit`, and on `WM_QUERYENDSESSION` in `MainForm.WndProc` for Windows shutdown.

@@ -359,7 +359,7 @@ namespace SKeys9 {
 				}
 			}
 			catch (InvalidOperationException) {
-				Debug.WriteLine("Collection modified, cancelling save");
+				Log.Write("Save cancelled: the statistics changed while being saved, so a log may be cut short");
 			}
 		}
 

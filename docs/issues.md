@@ -87,14 +87,14 @@ Neither `File.WriteAllText` nor `JsonConvert.DeserializeObject` has any error ha
 
 `Hooks.OnHookCheck` ([Hooks.cs](../SKeys9/SKeys9/Hooks.cs)) reinstalls both hooks when `GetLastInputInfo` reports input newer than the last callback. Two things about it are still unproven:
 
-- **False reinstalls:** every test run used injected input. Hardware input might update `GetLastInputInfo` without reaching a hook, and each such case adds to the `9D` line of `count.log`. Typing at the lock screen or a UAC prompt is expected to do this.
+- **False reinstalls:** every test run used injected input. Hardware input might update `GetLastInputInfo` without reaching a hook, and each such case adds a line to `debuglog.log`. Typing at the lock screen or a UAC prompt is expected to do this.
 - **A real drop:** recovery was only tested by unhooking behind `Hooks`' back, not with Windows removing a hook.
 
-**Evidence:** reproduced 2026-11-01. With no input from the user, injected activity caused no reinstalls, and a simulated dead hook recovered within 2.3 s for the mouse and 0.6 s for the keyboard. The real exe, suspended while 9 moves were injected, kept its hook: each move waited out the hook timeout (about 310 ms), so a real drop wasn't seen. It reinstalled once on resuming, because it had missed that input, and `count.log` recorded it.
+**Evidence:** reproduced 2026-11-01. With no input from the user, injected activity caused no reinstalls, and a simulated dead hook recovered within 2.3 s for the mouse and 0.6 s for the keyboard. The real exe, frozen while 30 moves were injected over 9 s, kept its hook: each move waited out the hook timeout (about 310 ms), so a real drop wasn't seen. It reinstalled once on resuming, because it had missed that input, and later moves were seen. A second copy running during the freeze logged one reinstall inside the freeze and no more. By the timing, this looks like a false reinstall: the frozen hook ahead of it in the chain delayed each move past `HookCheckMargin`, and reinstalling put it first in the chain. Only that timing supports this, but it suggests another program's slow hook can cause the odd harmless reinstall.
 
-**Plan:** use the app normally for a day with Button Presses logging on, then read the `9D` line. If it climbs during ordinary use, raise `HookCheckMargin` or rethink the check. Note any time input stops showing and then comes back.
+**Plan:** use the app normally, then read `debuglog.log`. If reinstalls appear during ordinary use, raise `HookCheckMargin` or rethink the check. Note any time input stops showing and then comes back, because normal use is now the only known way to see a real drop: freezing the app didn't cause one.
 
-**Verify:** the `9D` line stays near 0 in normal use, apart from time at the lock screen or UAC prompts.
+**Verify:** `debuglog.log` stays close to empty in normal use, apart from time at the lock screen or UAC prompts. After a real drop, the watchdog logs a reinstall and later input is seen.
 
 **Docs when done:** none.
 

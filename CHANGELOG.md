@@ -4,6 +4,10 @@ What changed for users of S Keys 9, per release. Downloads are on the [releases 
 
 ## Unreleased
 
+### Added
+
+- `debuglog.log` next to `SKeys9.exe` records errors and when S Keys 9 had to reconnect to Windows, with the time. It only appears once there's something to record.
+
 ### Fixed
 
 - **Key names are back** for OEM102 (`?226`) and other keys that showed as a number. If you keep your own `KeyNames.json`, replace it with the new one.

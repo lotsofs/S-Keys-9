@@ -175,6 +175,7 @@ namespace SKeys9 {
 				_lastCallback = now;
 				DisableHooks();
 				EnableHooks();
+				Log.Write("Reinstalled the hooks: input arrived that neither hook saw");
 				OnHooksReinstalled?.Invoke(this, EventArgs.Empty);
 			}
 		}
