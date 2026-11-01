@@ -4,34 +4,7 @@ Detail for the items in [TODO.md](TODO.md).
 
 Dependencies between plans:
 
-- RAC decides how the mouse-move thread shares data. MTS builds on that choice, and goes away if RAC drops the thread.
 - MKN, KNP and SRN all change how key names load, so do them together.
-
-## RAC — Mouse-move thread races the UI thread on the statistics
-
-The mouse-move thread (`Input.ProcessQueuedMouseMovements` → `MouseMoveProcessing`, [Input.cs](../SKeys9/SKeys9/Input.cs)) writes to these:
-
-- `_inputsCount` (0x9B, 0x9C)
-- `_inputsDuration` (0x9B)
-- `_mousePos`
-
-The UI thread also writes the first two on every key press, and `SaveFiles` reads all three. Nothing locks them. Counter updates can be lost.
-
-A save can also collide with the thread. If `SaveFiles` is enumerating `_mousePos` while the thread adds a cell, it throws `InvalidOperationException`. `SaveFiles` catches that and abandons the rest of the save, with these effects:
-
-- `mousemovemap.log` is left part-written, because opening the `StreamWriter` already truncated it.
-- `mouseinteractionmap.log` isn't saved that round.
-- If the abandoned save was the one on exit, the next start loads the short file. The `.log.bak` copy only holds the data as of the last start.
-
-**Evidence:** read 2026-10-21. Not reproduced.
-
-**Plan:** guard the movement statistics with one lock. `MouseMoveProcessing` takes it for each event. `SaveFiles` takes it while copying the data, then writes the copy outside the lock. Write each log to a temporary file and swap it in with `File.Replace`, so a failed save can't truncate the real file.
-
-The alternative is to drop the thread and process moves on the UI thread. Each event is cheap, but the thread was added so that short hangs wouldn't stall input. Choose between these here, since MTS follows from the choice.
-
-**Verify:** use a debug build with the autosave interval cut to about 1 s. Run it with movement logging on and move the mouse constantly for a few minutes. "Collection modified" must never appear in the debug output, and every saved `mousemovemap.log` must load back with the same number of lines.
-
-**Docs when done:** CLAUDE.md § Threading. Changelog entry, because users with movement logging on stop losing parts of `mousemovemap.log`.
 
 ## MTS — Mouse-move thread polls forever and cannot be stopped
 
@@ -39,7 +12,7 @@ The alternative is to drop the thread and process moves on the UI thread. Each e
 
 **Evidence:** read 2026-10-21.
 
-**Plan:** replace the `ConcurrentQueue` and `Thread.Sleep` with a `BlockingCollection<MoveEventArgs>` consumed through `GetConsumingEnumerable`, which blocks without polling. In `MainForm.PrepareProgramForExit`, call `CompleteAdding` and join the thread with a short timeout before `SaveFiles`. Optionally, start the thread only while movement logging is on. If RAC drops the thread, log this item as resolved by RAC instead.
+**Plan:** replace the `ConcurrentQueue` and `Thread.Sleep` with a `BlockingCollection<MoveEventArgs>` consumed through `GetConsumingEnumerable`, which blocks without polling. In `MainForm.PrepareProgramForExit`, call `CompleteAdding` and join the thread with a short timeout before `SaveFiles`. Optionally, start the thread only while movement logging is on.
 
 **Verify:** with movement logging off, the thread's context-switch count, as shown in Process Explorer, stays flat. Move the mouse just before exiting, and those moves appear in the saved log.
 

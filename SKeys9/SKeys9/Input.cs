@@ -13,6 +13,7 @@ namespace SKeys9 {
 
 		Dictionary<int, TimeSpan> _mousePos = new Dictionary<int, TimeSpan>();
 		Dictionary<int, int> _mouseInteractions = new Dictionary<int, int>();
+		readonly object _statsLock = new object(); // the mouse move thread shares everything above except _mouseInteractions
 
 		Stopwatches _stopwatches = new Stopwatches();
 		System.Windows.Forms.Timer _autosaveTimer;
@@ -42,6 +43,31 @@ namespace SKeys9 {
 			StartScrollRemoveTimer();
 			StartMouseMovementProcessing();
 		}
+
+		#region statistics shared with the mouse move thread
+
+		/// <summary>
+		/// Adds to a key's count
+		/// </summary>
+		/// <param name="key">the key</param>
+		void AddToCount(int key) {
+			lock (_statsLock) {
+				S.Dictionaries.IncrementValue(_inputsCount, key, 1);
+			}
+		}
+
+		/// <summary>
+		/// Adds to a key's total duration
+		/// </summary>
+		/// <param name="key">the key</param>
+		/// <param name="time">the time to add</param>
+		void AddToDuration(int key, TimeSpan time) {
+			lock (_statsLock) {
+				S.Dictionaries.IncrementValue(_inputsDuration, key, time);
+			}
+		}
+
+		#endregion
 
 		#region mouse scrollwheel counter
 
@@ -75,7 +101,7 @@ namespace SKeys9 {
 		/// <param name="e"></param>
 		internal void OnMouseScroll(object sender, ScrollEventArgs e) {
 			int dictionaryEntry = (int)e.Direction + 0x97;  // hijacked some unassigned VK codes' slots
-			S.Dictionaries.IncrementValue(_inputsCount, dictionaryEntry, 1);
+			AddToCount(dictionaryEntry);
 			AddScroll(dictionaryEntry);
 		}
 
@@ -127,7 +153,7 @@ namespace SKeys9 {
 		internal void OnButtonDown(object sender, KeyEventArgs e) {
 			if (Configuration.LogButtons) {
 				_stopwatches.KeyPressStart(e.Key);
-				S.Dictionaries.IncrementValue(_inputsCount, e.Key, 1);
+				AddToCount(e.Key);
 			}
 			SetButtonAsPressed(e.Key, true);
 		}
@@ -140,7 +166,7 @@ namespace SKeys9 {
 		internal void OnButtonUp(object sender, KeyEventArgs e) {
 			if (Configuration.LogButtons) {
 				TimeSpan time = _stopwatches.KeyPressStop(e.Key);
-				S.Dictionaries.IncrementValue(_inputsDuration, e.Key, time);
+				AddToDuration(e.Key, time);
 			}
 			SetButtonAsPressed(e.Key, false);
 		}
@@ -153,7 +179,7 @@ namespace SKeys9 {
 		internal void OnMouseDown(object sender, MouseEventArgs e) {
 			if (Configuration.LogButtons) {
 				_stopwatches.KeyPressStart((int)e.Button);
-				S.Dictionaries.IncrementValue(_inputsCount, (int)e.Button, 1);
+				AddToCount((int)e.Button);
 			}
 			if (Configuration.LogClicks) {
 				int coordsInt = S.Bits.CombineInt(S.Math.FloorDivide(e.X, 10), S.Math.FloorDivide(e.Y, 10));
@@ -170,7 +196,7 @@ namespace SKeys9 {
 		internal void OnMouseUp(object sender, MouseEventArgs e) {
 			if (Configuration.LogButtons) {
 				TimeSpan time = _stopwatches.KeyPressStop((int)e.Button);
-				S.Dictionaries.IncrementValue(_inputsDuration, (int)e.Button, time);
+				AddToDuration((int)e.Button, time);
 			}
 			//if (Configuration.LogClicks) {
 			//	int coordsInt = MathS.CombineInt(e.X, e.Y);
@@ -190,7 +216,7 @@ namespace SKeys9 {
 		/// <param name="e"></param>
 		internal void OnHooksReinstalled(object sender, EventArgs e) {
 			if (Configuration.LogButtons) {
-				S.Dictionaries.IncrementValue(_inputsCount, 0x9D, 1); // hijacked an unassigned VK code's slot
+				AddToCount(0x9D); // hijacked an unassigned VK code's slot
 			}
 		}
 
@@ -236,7 +262,9 @@ namespace SKeys9 {
 				}
 				MoveEventArgs result;
 				if (movementQueue.TryDequeue(out result)) {
-					MouseMoveProcessing(result);
+					lock (_statsLock) {
+						MouseMoveProcessing(result);
+					}
 				}
 			}
 		}
@@ -330,36 +358,64 @@ namespace SKeys9 {
 		/// write data to file
 		/// </summary>
 		public void SaveFiles() {
-			try {
-				if (Configuration.LogButtons) {
-					using (StreamWriter sw = new StreamWriter(Configuration.CountPath)) {
-						for (int key = 0; key <= 0xFF; key++) {
-							sw.WriteLine(string.Format("{0:X2} {1}", key, _inputsCount[key]));
-						}
-					}
-					using (StreamWriter sw = new StreamWriter(Configuration.DurationPath)) {
-						for (int key = 0; key <= 0xFF; key++) {
-							sw.WriteLine(string.Format("{0:X2} {1}", key, _inputsDuration[key]));
-						}
-					}
-				}
-				if (Configuration.LogMovement) {
-					using (StreamWriter sw = new StreamWriter(Configuration.MousePath)) {
-						foreach (int i in _mousePos.Keys) {
-							sw.WriteLine(string.Format("{0:X8} {1:X}", i, _mousePos[i].Ticks));
-						}
-					}
-				}
-				if (Configuration.LogClicks) {
-					using (StreamWriter sw = new StreamWriter(Configuration.InteractionPath)) {
-						foreach (int i in _mouseInteractions.Keys) {
-							sw.WriteLine(string.Format("{0:X8} {1:X}", i, _mouseInteractions[i]));
-						}
-					}
-				}
+			Dictionary<int, uint> inputsCount;
+			Dictionary<int, TimeSpan> inputsDuration;
+			Dictionary<int, TimeSpan> mousePos;
+			lock (_statsLock) {
+				inputsCount = new Dictionary<int, uint>(_inputsCount);
+				inputsDuration = new Dictionary<int, TimeSpan>(_inputsDuration);
+				mousePos = new Dictionary<int, TimeSpan>(_mousePos);
 			}
-			catch (InvalidOperationException) {
-				Log.Write("Save cancelled: the statistics changed while being saved, so a log may be cut short");
+
+			if (Configuration.LogButtons) {
+				WriteLog(Configuration.CountPath, sw => {
+					for (int key = 0; key <= 0xFF; key++) {
+						sw.WriteLine(string.Format("{0:X2} {1}", key, inputsCount[key]));
+					}
+				});
+				WriteLog(Configuration.DurationPath, sw => {
+					for (int key = 0; key <= 0xFF; key++) {
+						sw.WriteLine(string.Format("{0:X2} {1}", key, inputsDuration[key]));
+					}
+				});
+			}
+			if (Configuration.LogMovement) {
+				WriteLog(Configuration.MousePath, sw => {
+					foreach (int i in mousePos.Keys) {
+						sw.WriteLine(string.Format("{0:X8} {1:X}", i, mousePos[i].Ticks));
+					}
+				});
+			}
+			if (Configuration.LogClicks) {
+				WriteLog(Configuration.InteractionPath, sw => {
+					foreach (int i in _mouseInteractions.Keys) {
+						sw.WriteLine(string.Format("{0:X8} {1:X}", i, _mouseInteractions[i]));
+					}
+				});
+			}
+		}
+
+		/// <summary>
+		/// Writes a log to a temporary file and swaps it in, so a save that fails partway can't cut the real file short
+		/// </summary>
+		/// <param name="path">the log</param>
+		/// <param name="write">writes the log's lines</param>
+		void WriteLog(string path, Action<StreamWriter> write) {
+			string tempPath = path + ".tmp";
+			using (StreamWriter sw = new StreamWriter(tempPath)) {
+				write(sw);
+			}
+
+			if (!File.Exists(path)) {
+				File.Move(tempPath, path);
+				return;
+			}
+			try {
+				File.Replace(tempPath, path, null);
+			}
+			catch (Exception e) when (e is IOException || e is UnauthorizedAccessException) {
+				// something has the log open. The data is still in memory, so the next save tries again
+				Log.Write("Couldn't update " + Path.GetFileName(path) + ": " + e.Message);
 			}
 		}
 
