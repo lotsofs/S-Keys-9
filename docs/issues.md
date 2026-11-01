@@ -119,15 +119,3 @@ The hook check interval is 1000 ms in the `Hooks` constructor ([Hooks.cs](../SKe
 **Verify:** delete `skeys9.ini`, open the settings window, change a colour and press Cancel: the colour reverts. Do the same and close with X: it reverts. Change a colour and press OK: it is saved.
 
 **Docs when done:** CLAUDE.md § Settings flow. Changelog entry.
-
-## HHD — Mouse hook passes the keyboard hook handle
-
-When `nCode < 0`, `Hooks.MHookCallback` returns `CallNextHookEx(_kbHookID, …)` ([Hooks.cs](../SKeys9/SKeys9/Hooks.cs)). It should pass `_mHookID`. Windows ignores this parameter, so nothing visible goes wrong.
-
-**Evidence:** read 2026-10-21.
-
-**Plan:** pass `_mHookID`.
-
-**Verify:** the solution builds, and mouse input still shows.
-
-**Docs when done:** none. Windows ignores the handle, so users can't see any difference.

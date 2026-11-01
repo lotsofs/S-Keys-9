@@ -239,7 +239,7 @@ namespace SKeys9 {
 			_lastCallback = unchecked((uint)Environment.TickCount);
 
 			if (nCode < 0) {
-				return CallNextHookEx(_kbHookID, nCode, wParam, lParam);
+				return CallNextHookEx(_mHookID, nCode, wParam, lParam);
 			}
 
 			MSLLHOOKSTRUCT hookStruct = (MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MSLLHOOKSTRUCT));
