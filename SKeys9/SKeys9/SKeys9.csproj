@@ -30,8 +30,9 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
+    <DebugType>portable</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -79,6 +80,7 @@
     <Compile Include="EventArgs.cs" />
     <Compile Include="FrameworkS\Bits.cs" />
     <Compile Include="FrameworkS\Dictionaries.cs" />
+    <Compile Include="HeldKeyLayout.cs" />
     <Compile Include="Input.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>

@@ -51,11 +51,26 @@
 			this.panelCounterTextCol = new System.Windows.Forms.Panel();
 			this.buttonCounterBGCol = new System.Windows.Forms.Button();
 			this.buttonCounterTextCol = new System.Windows.Forms.Button();
+			this.GroupBoxKeyDisplay = new System.Windows.Forms.GroupBox();
+			this.KeepKeysInPlaceCheckbox = new System.Windows.Forms.CheckBox();
+			this.FillKeyGapsCheckbox = new System.Windows.Forms.CheckBox();
+			this.GreyOutReleasedKeysCheckbox = new System.Windows.Forms.CheckBox();
+			this.ClearDelayLabel = new System.Windows.Forms.Label();
+			this.ClearDelayBox = new System.Windows.Forms.NumericUpDown();
+			this.FadeOpacityRadio = new System.Windows.Forms.RadioButton();
+			this.FadeOpacitySlider = new System.Windows.Forms.TrackBar();
+			this.FadeOpacityLabel = new System.Windows.Forms.Label();
+			this.FadeColorRadio = new System.Windows.Forms.RadioButton();
+			this.ButtonFadeColor = new System.Windows.Forms.Button();
+			this.FadeColorPreview = new System.Windows.Forms.Panel();
 			this.GroupBoxFont.SuspendLayout();
 			this.GroupBoxWindow.SuspendLayout();
 			this.GroupBoxColor.SuspendLayout();
 			this.GroupBoxFeatures.SuspendLayout();
 			this.groupBoxCounter.SuspendLayout();
+			this.GroupBoxKeyDisplay.SuspendLayout();
+			((System.ComponentModel.ISupportInitialize)(this.ClearDelayBox)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.FadeOpacitySlider)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// MinimizeToTrayCheckBox
@@ -314,12 +329,155 @@
 			this.buttonCounterTextCol.Text = "Text Color";
 			this.buttonCounterTextCol.UseVisualStyleBackColor = true;
 			this.buttonCounterTextCol.Click += new System.EventHandler(this.buttonCounterTextCol_Click);
-			// 
+			//
+			// GroupBoxKeyDisplay
+			//
+			this.GroupBoxKeyDisplay.Controls.Add(this.KeepKeysInPlaceCheckbox);
+			this.GroupBoxKeyDisplay.Controls.Add(this.FillKeyGapsCheckbox);
+			this.GroupBoxKeyDisplay.Controls.Add(this.GreyOutReleasedKeysCheckbox);
+			this.GroupBoxKeyDisplay.Controls.Add(this.ClearDelayLabel);
+			this.GroupBoxKeyDisplay.Controls.Add(this.ClearDelayBox);
+			this.GroupBoxKeyDisplay.Controls.Add(this.FadeOpacityRadio);
+			this.GroupBoxKeyDisplay.Controls.Add(this.FadeOpacitySlider);
+			this.GroupBoxKeyDisplay.Controls.Add(this.FadeOpacityLabel);
+			this.GroupBoxKeyDisplay.Controls.Add(this.FadeColorRadio);
+			this.GroupBoxKeyDisplay.Controls.Add(this.ButtonFadeColor);
+			this.GroupBoxKeyDisplay.Controls.Add(this.FadeColorPreview);
+			this.GroupBoxKeyDisplay.Location = new System.Drawing.Point(12, 280);
+			this.GroupBoxKeyDisplay.Name = "GroupBoxKeyDisplay";
+			this.GroupBoxKeyDisplay.Size = new System.Drawing.Size(406, 124);
+			this.GroupBoxKeyDisplay.TabIndex = 13;
+			this.GroupBoxKeyDisplay.TabStop = false;
+			this.GroupBoxKeyDisplay.Text = "Key Display";
+			//
+			// KeepKeysInPlaceCheckbox
+			//
+			this.KeepKeysInPlaceCheckbox.AutoSize = true;
+			this.KeepKeysInPlaceCheckbox.Checked = true;
+			this.KeepKeysInPlaceCheckbox.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.KeepKeysInPlaceCheckbox.Location = new System.Drawing.Point(6, 19);
+			this.KeepKeysInPlaceCheckbox.Name = "KeepKeysInPlaceCheckbox";
+			this.KeepKeysInPlaceCheckbox.Size = new System.Drawing.Size(117, 17);
+			this.KeepKeysInPlaceCheckbox.TabIndex = 0;
+			this.KeepKeysInPlaceCheckbox.Text = "Keep Keys In Place";
+			this.KeepKeysInPlaceCheckbox.UseVisualStyleBackColor = true;
+			this.KeepKeysInPlaceCheckbox.CheckedChanged += new System.EventHandler(this.KeepKeysInPlaceCheckbox_CheckedChanged);
+			//
+			// FillKeyGapsCheckbox
+			//
+			this.FillKeyGapsCheckbox.AutoSize = true;
+			this.FillKeyGapsCheckbox.Checked = true;
+			this.FillKeyGapsCheckbox.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.FillKeyGapsCheckbox.Location = new System.Drawing.Point(6, 42);
+			this.FillKeyGapsCheckbox.Name = "FillKeyGapsCheckbox";
+			this.FillKeyGapsCheckbox.Size = new System.Drawing.Size(118, 17);
+			this.FillKeyGapsCheckbox.TabIndex = 1;
+			this.FillKeyGapsCheckbox.Text = "New Keys Fill Gaps";
+			this.FillKeyGapsCheckbox.UseVisualStyleBackColor = true;
+			this.FillKeyGapsCheckbox.CheckedChanged += new System.EventHandler(this.FillKeyGapsCheckbox_CheckedChanged);
+			//
+			// GreyOutReleasedKeysCheckbox
+			//
+			this.GreyOutReleasedKeysCheckbox.AutoSize = true;
+			this.GreyOutReleasedKeysCheckbox.Checked = true;
+			this.GreyOutReleasedKeysCheckbox.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.GreyOutReleasedKeysCheckbox.Location = new System.Drawing.Point(213, 19);
+			this.GreyOutReleasedKeysCheckbox.Name = "GreyOutReleasedKeysCheckbox";
+			this.GreyOutReleasedKeysCheckbox.Size = new System.Drawing.Size(141, 17);
+			this.GreyOutReleasedKeysCheckbox.TabIndex = 2;
+			this.GreyOutReleasedKeysCheckbox.Text = "Grey Out Released Keys";
+			this.GreyOutReleasedKeysCheckbox.UseVisualStyleBackColor = true;
+			this.GreyOutReleasedKeysCheckbox.CheckedChanged += new System.EventHandler(this.GreyOutReleasedKeysCheckbox_CheckedChanged);
+			//
+			// ClearDelayLabel
+			//
+			this.ClearDelayLabel.AutoSize = true;
+			this.ClearDelayLabel.Location = new System.Drawing.Point(213, 44);
+			this.ClearDelayLabel.Name = "ClearDelayLabel";
+			this.ClearDelayLabel.Size = new System.Drawing.Size(84, 13);
+			this.ClearDelayLabel.TabIndex = 3;
+			this.ClearDelayLabel.Text = "Clear Delay (ms)";
+			//
+			// ClearDelayBox
+			//
+			this.ClearDelayBox.Increment = new decimal(new int[] {
+            50,
+            0,
+            0,
+            0});
+			this.ClearDelayBox.Location = new System.Drawing.Point(319, 42);
+			this.ClearDelayBox.Name = "ClearDelayBox";
+			this.ClearDelayBox.Size = new System.Drawing.Size(81, 20);
+			this.ClearDelayBox.TabIndex = 4;
+			this.ClearDelayBox.ValueChanged += new System.EventHandler(this.ClearDelayBox_ValueChanged);
+			//
+			// FadeOpacityRadio
+			//
+			this.FadeOpacityRadio.AutoSize = true;
+			this.FadeOpacityRadio.Checked = true;
+			this.FadeOpacityRadio.Location = new System.Drawing.Point(6, 71);
+			this.FadeOpacityRadio.Name = "FadeOpacityRadio";
+			this.FadeOpacityRadio.Size = new System.Drawing.Size(86, 17);
+			this.FadeOpacityRadio.TabIndex = 5;
+			this.FadeOpacityRadio.TabStop = true;
+			this.FadeOpacityRadio.Text = "Fade Opacity";
+			this.FadeOpacityRadio.UseVisualStyleBackColor = true;
+			//
+			// FadeOpacitySlider
+			//
+			this.FadeOpacitySlider.AutoSize = false;
+			this.FadeOpacitySlider.LargeChange = 10;
+			this.FadeOpacitySlider.Location = new System.Drawing.Point(213, 68);
+			this.FadeOpacitySlider.Maximum = 100;
+			this.FadeOpacitySlider.Name = "FadeOpacitySlider";
+			this.FadeOpacitySlider.Size = new System.Drawing.Size(140, 23);
+			this.FadeOpacitySlider.TabIndex = 6;
+			this.FadeOpacitySlider.TickStyle = System.Windows.Forms.TickStyle.None;
+			this.FadeOpacitySlider.ValueChanged += new System.EventHandler(this.FadeOpacitySlider_ValueChanged);
+			//
+			// FadeOpacityLabel
+			//
+			this.FadeOpacityLabel.AutoSize = true;
+			this.FadeOpacityLabel.Location = new System.Drawing.Point(359, 71);
+			this.FadeOpacityLabel.Name = "FadeOpacityLabel";
+			this.FadeOpacityLabel.Size = new System.Drawing.Size(33, 13);
+			this.FadeOpacityLabel.TabIndex = 7;
+			this.FadeOpacityLabel.Text = "100%";
+			//
+			// FadeColorRadio
+			//
+			this.FadeColorRadio.AutoSize = true;
+			this.FadeColorRadio.Location = new System.Drawing.Point(6, 97);
+			this.FadeColorRadio.Name = "FadeColorRadio";
+			this.FadeColorRadio.Size = new System.Drawing.Size(113, 17);
+			this.FadeColorRadio.TabIndex = 8;
+			this.FadeColorRadio.Text = "Custom Fade Color";
+			this.FadeColorRadio.UseVisualStyleBackColor = true;
+			this.FadeColorRadio.CheckedChanged += new System.EventHandler(this.FadeColorRadio_CheckedChanged);
+			//
+			// ButtonFadeColor
+			//
+			this.ButtonFadeColor.Location = new System.Drawing.Point(213, 94);
+			this.ButtonFadeColor.Name = "ButtonFadeColor";
+			this.ButtonFadeColor.Size = new System.Drawing.Size(100, 23);
+			this.ButtonFadeColor.TabIndex = 9;
+			this.ButtonFadeColor.Text = "Fade Color";
+			this.ButtonFadeColor.UseVisualStyleBackColor = true;
+			this.ButtonFadeColor.Click += new System.EventHandler(this.ButtonFadeColor_Click);
+			//
+			// FadeColorPreview
+			//
+			this.FadeColorPreview.Location = new System.Drawing.Point(319, 94);
+			this.FadeColorPreview.Name = "FadeColorPreview";
+			this.FadeColorPreview.Size = new System.Drawing.Size(81, 23);
+			this.FadeColorPreview.TabIndex = 10;
+			//
 			// SettingsForm
-			// 
+			//
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(511, 285);
+			this.ClientSize = new System.Drawing.Size(511, 415);
+			this.Controls.Add(this.GroupBoxKeyDisplay);
 			this.Controls.Add(this.groupBoxCounter);
 			this.Controls.Add(this.GroupBoxFeatures);
 			this.Controls.Add(this.GroupBoxColor);
@@ -337,6 +495,10 @@
 			this.GroupBoxFeatures.ResumeLayout(false);
 			this.GroupBoxFeatures.PerformLayout();
 			this.groupBoxCounter.ResumeLayout(false);
+			this.GroupBoxKeyDisplay.ResumeLayout(false);
+			this.GroupBoxKeyDisplay.PerformLayout();
+			((System.ComponentModel.ISupportInitialize)(this.ClearDelayBox)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.FadeOpacitySlider)).EndInit();
 			this.ResumeLayout(false);
 
 		}
@@ -369,5 +531,17 @@
 		private System.Windows.Forms.Button buttonCounterFont;
 		private System.Windows.Forms.Button buttonCounterBGCol;
 		private System.Windows.Forms.Button buttonCounterTextCol;
+		private System.Windows.Forms.GroupBox GroupBoxKeyDisplay;
+		private System.Windows.Forms.CheckBox KeepKeysInPlaceCheckbox;
+		private System.Windows.Forms.CheckBox FillKeyGapsCheckbox;
+		private System.Windows.Forms.CheckBox GreyOutReleasedKeysCheckbox;
+		private System.Windows.Forms.Label ClearDelayLabel;
+		private System.Windows.Forms.NumericUpDown ClearDelayBox;
+		private System.Windows.Forms.RadioButton FadeOpacityRadio;
+		private System.Windows.Forms.TrackBar FadeOpacitySlider;
+		private System.Windows.Forms.Label FadeOpacityLabel;
+		private System.Windows.Forms.RadioButton FadeColorRadio;
+		private System.Windows.Forms.Button ButtonFadeColor;
+		private System.Windows.Forms.Panel FadeColorPreview;
 	}
 }

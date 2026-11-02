@@ -17,6 +17,17 @@ namespace SKeys9 {
 		internal static bool MinimizeToTray = true;
 		internal static bool ExitToTray = false;
 
+		internal static bool KeepKeysInPlace = true;
+		internal static bool FillKeyGaps = true;
+		internal static bool GreyOutReleasedKeys = true;
+
+		internal const int MinClearDelay = 1;
+		internal const int MaxClearDelay = 60000;
+		internal static int ClearDelay = 300;	// milliseconds that released keys and scroll counters stay
+		internal static int FadeOpacity = 50;	// percent of the way from the background colour to the text colour
+		internal static bool UseFadeColor = false;
+		internal static int FadeColor = unchecked((int)0xff808080);
+
 		internal static bool LogButtons = false;
 		internal static bool LogClicks = false;
 
@@ -147,6 +158,31 @@ namespace SKeys9 {
 					case "ExitToTray":
 						Configuration.ExitToTray = bool.Parse(serializableSettings[setting]);
 						break;
+					case "KeepKeysInPlace":
+						Configuration.KeepKeysInPlace = bool.Parse(serializableSettings[setting]);
+						break;
+					case "FillKeyGaps":
+						Configuration.FillKeyGaps = bool.Parse(serializableSettings[setting]);
+						break;
+					case "GreyOutReleasedKeys":
+						Configuration.GreyOutReleasedKeys = bool.Parse(serializableSettings[setting]);
+						break;
+					case "ClearDelay":
+						// a timer can't take 0, and the settings window's box can't show anything outside the range
+						int clearDelay = int.Parse(serializableSettings[setting]);
+						Configuration.ClearDelay = Math.Min(Math.Max(clearDelay, MinClearDelay), MaxClearDelay);
+						break;
+					case "FadeOpacity":
+						Configuration.FadeOpacity = Math.Min(Math.Max(int.Parse(serializableSettings[setting]), 0), 100);
+						break;
+					case "UseFadeColor":
+						Configuration.UseFadeColor = bool.Parse(serializableSettings[setting]);
+						break;
+					case "FadeColor":
+						int rIndexF = serializableSettings[setting].Length - 6;
+						Configuration.FadeColor = unchecked(int.Parse(serializableSettings[setting].Substring(rIndexF), System.Globalization.NumberStyles.HexNumber));
+						Configuration.FadeColor |= unchecked((int)0xff000000);
+						break;
 					case "LogButtons":
 						Configuration.LogButtons = bool.Parse(serializableSettings[setting]);
 						break;
@@ -176,10 +212,34 @@ namespace SKeys9 {
 			S.Dictionaries.SetValue(serializableSettings, "CounterBackColor", Configuration.CounterBackColor.ToString("X6").Substring(2));
 			S.Dictionaries.SetValue(serializableSettings, "MinimizeToTray", Configuration.MinimizeToTray.ToString());
 			S.Dictionaries.SetValue(serializableSettings, "ExitToTray", Configuration.ExitToTray.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "KeepKeysInPlace", Configuration.KeepKeysInPlace.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "FillKeyGaps", Configuration.FillKeyGaps.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "GreyOutReleasedKeys", Configuration.GreyOutReleasedKeys.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "ClearDelay", Configuration.ClearDelay.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "FadeOpacity", Configuration.FadeOpacity.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "UseFadeColor", Configuration.UseFadeColor.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "FadeColor", Configuration.FadeColor.ToString("X6").Substring(2));
 			S.Dictionaries.SetValue(serializableSettings, "LogButtons", Configuration.LogButtons.ToString());
 			S.Dictionaries.SetValue(serializableSettings, "LogClicks", Configuration.LogClicks.ToString());
 			S.Dictionaries.SetValue(serializableSettings, "LogMovement", Configuration.LogMovement.ToString());
 			SaveSettings();
+		}
+
+		/// <summary>
+		/// The colour for released keys: the custom one, or a share of the way from the background to the text colour
+		/// </summary>
+		/// <returns></returns>
+		internal static System.Drawing.Color ReleasedKeyColor() {
+			if (UseFadeColor) {
+				return System.Drawing.Color.FromArgb(FadeColor);
+			}
+			System.Drawing.Color text = System.Drawing.Color.FromArgb(Color);
+			System.Drawing.Color back = System.Drawing.Color.FromArgb(BackColor);
+			return System.Drawing.Color.FromArgb(
+				back.R + (text.R - back.R) * FadeOpacity / 100,
+				back.G + (text.G - back.G) * FadeOpacity / 100,
+				back.B + (text.B - back.B) * FadeOpacity / 100
+			);
 		}
 
 		/// <summary>

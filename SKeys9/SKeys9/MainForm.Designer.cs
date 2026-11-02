@@ -126,6 +126,7 @@
 			this.DisplayText.Size = new System.Drawing.Size(767, 160);
 			this.DisplayText.TabIndex = 1;
 			this.DisplayText.Text = "{ S Keys 9 } \r\n{ Right click for options }";
+			this.DisplayText.Paint += new System.Windows.Forms.PaintEventHandler(this.DisplayText_Paint);
 			// 
 			// MainForm
 			// 

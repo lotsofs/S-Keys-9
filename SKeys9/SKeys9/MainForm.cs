@@ -7,6 +7,9 @@ namespace SKeys9 {
 	public partial class MainForm : Form {
 		Hooks _hooks;
 		Input _input;
+		HeldKeyLayout _keyLayout = new HeldKeyLayout();
+		ChangeEventArgs _lastChange;
+		Timer _keyRemoveTimer;
 
 		CounterForm _counterForm;
 		SettingsForm _settingsForm;
@@ -29,6 +32,9 @@ namespace SKeys9 {
 		void AddHooks() {
 			_hooks = new Hooks();
 			_input = new Input();
+
+			_keyRemoveTimer = new Timer();
+			_keyRemoveTimer.Tick += OnKeyRemoveTimerTick;
 
 			_input.OnKeysChanged += UpdateText;
 
@@ -57,6 +63,10 @@ namespace SKeys9 {
 			DisplayText.Font = font;
 			DisplayText.ForeColor = Color.FromArgb(Configuration.Color);
 			this.BackColor = Color.FromArgb(Configuration.BackColor);
+			_keyLayout.Clear(); // the font may have changed, and the keys were measured with the old one
+			if (_lastChange != null) {
+				UpdateText(this, _lastChange);
+			}
 		}
 
 		/// <summary>
@@ -65,21 +75,59 @@ namespace SKeys9 {
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
 		void UpdateText(object sender, ChangeEventArgs e) {
+			_lastChange = e;
 			if (ToolStripMenuItemDisableDisplay.Checked) {
 				return;
 			}
 
-			string text = string.Empty;
-			foreach (string s in e.ActiveButtons) {
-				text += (s + " ");
-			}
-			text += "\n";
+			_keyLayout.Update(e.ActiveButtons, DisplayText.Font, ClientSize.Width);
+
+			string text = new string('\n', _keyLayout.Rows); // DisplayText_Paint draws the held keys on these lines
 			foreach (string s in e.ScrollCount.Keys) {
 				if (e.ScrollCount[s] != 0) {
 					text += (s + " " + e.ScrollCount[s] + " ");
 				}
 			}
 			DisplayText.Text = text;
+			DisplayText.Invalidate();
+			DisplayText.Update(); // a title bar press holds up the message loop but not the hooks, so this can't wait for it
+			ScheduleKeyRemoval();
+		}
+
+		/// <summary>
+		/// Sets the timer for the next released key to go. It doesn't run while no key is waiting, so an idle program stays idle
+		/// </summary>
+		void ScheduleKeyRemoval() {
+			_keyRemoveTimer.Stop();
+			int? timeLeft = _keyLayout.NextRemoval();
+			if (timeLeft != null) {
+				_keyRemoveTimer.Interval = System.Math.Max(1, timeLeft.Value);
+				_keyRemoveTimer.Start();
+			}
+		}
+
+		/// <summary>
+		/// A released key's time is up
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		void OnKeyRemoveTimerTick(object sender, EventArgs e) {
+			_keyRemoveTimer.Stop();
+			UpdateText(this, _lastChange);
+		}
+
+		/// <summary>
+		/// Draws the keys, each at its own spot, over the label's text
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		void DisplayText_Paint(object sender, PaintEventArgs e) {
+			Color released = Configuration.ReleasedKeyColor();
+			foreach (PlacedKey key in _keyLayout.Placed) {
+				Point location = new Point(key.X, key.Row * DisplayText.Font.Height);
+				Color color = key.ReleasedAt == null ? DisplayText.ForeColor : released;
+				TextRenderer.DrawText(e.Graphics, key.Name, DisplayText.Font, location, color, TextFormatFlags.NoPrefix);
+			}
 		}
 
 		#endregion
@@ -182,6 +230,7 @@ namespace SKeys9 {
 		//-------
 
 		private void ToolStripMenuItemDisableDisplay_CheckedChanged(object sender, EventArgs e) {
+			_keyLayout.Clear();
 			if (ToolStripMenuItemDisableDisplay.Checked) {
 				DisplayText.Text = " { Display disabled } ";
 			}

@@ -82,7 +82,6 @@ namespace SKeys9 {
 		/// </summary>
 		void StartScrollRemoveTimer() {
 			_scrollRemoveTimer = new System.Windows.Forms.Timer();
-			_scrollRemoveTimer.Interval = 300;
 			_scrollRemoveTimer.Tick += ResetScrolls;
 		}
 
@@ -125,6 +124,7 @@ namespace SKeys9 {
 			}
 			S.Dictionaries.IncrementValue(_currentScrollCount, scrollDirectionName, 1);
 			_scrollRemoveTimer.Stop();
+			_scrollRemoveTimer.Interval = Configuration.ClearDelay;
 			_scrollRemoveTimer.Start();
 			OnKeysChanged?.Invoke(this, new ChangeEventArgs(_currentlyPressed, _currentScrollCount));
 		}

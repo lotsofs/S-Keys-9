@@ -11,12 +11,28 @@ namespace SKeys9 {
 		Color _backColor;
 		Color _counterForeColor;
 		Color _counterBackColor;
+		Color _fadeColor;
 
 		public SettingsForm() {
 			InitializeComponent();
 
 			MinimizeToTrayCheckBox.Checked = Configuration.MinimizeToTray;
 			ExitToTrayCheckBox.Checked = Configuration.ExitToTray;
+
+			KeepKeysInPlaceCheckbox.Checked = Configuration.KeepKeysInPlace;
+			FillKeyGapsCheckbox.Checked = Configuration.FillKeyGaps;
+			FillKeyGapsCheckbox.Enabled = Configuration.KeepKeysInPlace;
+			GreyOutReleasedKeysCheckbox.Checked = Configuration.GreyOutReleasedKeys;
+
+			int clearDelay = Configuration.ClearDelay; // setting the range can change the box, which changes the setting
+			ClearDelayBox.Maximum = Configuration.MaxClearDelay;
+			ClearDelayBox.Minimum = Configuration.MinClearDelay;
+			ClearDelayBox.Value = clearDelay;
+
+			_fadeColor = Color.FromArgb(Configuration.FadeColor);
+			FadeOpacitySlider.Value = Configuration.FadeOpacity;
+			FadeColorRadio.Checked = Configuration.UseFadeColor;
+			UpdateFadeControls();
 
 			LogButtonsCheckbox.Checked = Configuration.LogButtons;
 			LogClicksCheckbox.Checked = Configuration.LogClicks;
@@ -77,6 +93,19 @@ namespace SKeys9 {
 			return color;
 		}
 
+		/// <summary>
+		/// Shows which fade controls apply, and the colour released keys will have
+		/// </summary>
+		void UpdateFadeControls() {
+			bool greyOut = GreyOutReleasedKeysCheckbox.Checked;
+			FadeOpacityRadio.Enabled = greyOut;
+			FadeColorRadio.Enabled = greyOut;
+			FadeOpacitySlider.Enabled = greyOut && FadeOpacityRadio.Checked;
+			ButtonFadeColor.Enabled = greyOut && FadeColorRadio.Checked;
+			FadeOpacityLabel.Text = FadeOpacitySlider.Value + "%";
+			FadeColorPreview.BackColor = Configuration.ReleasedKeyColor();
+		}
+
 		#region events for buttons
 
 		private void FontButton_Click(object sender, EventArgs e) {
@@ -91,6 +120,7 @@ namespace SKeys9 {
 			_foreColor = SelectColor(_foreColor);
 			Configuration.Color = _foreColor.ToArgb();
 			ForeColorPreview.BackColor = _foreColor;
+			UpdateFadeControls();
 			OnSettingsChanged?.Invoke(this, new EventArgs());
 		}
 
@@ -98,6 +128,7 @@ namespace SKeys9 {
 			_backColor = SelectColor(_backColor);
 			Configuration.BackColor = _backColor.ToArgb();
 			BackColorPreview.BackColor = _backColor;
+			UpdateFadeControls();
 			OnSettingsChanged?.Invoke(this, new EventArgs());
 		}
 
@@ -124,7 +155,48 @@ namespace SKeys9 {
 			Configuration.ExitToTray = ExitToTrayCheckBox.Checked;
 			OnSettingsChanged?.Invoke(this, new EventArgs());
 		}
-		
+
+		private void KeepKeysInPlaceCheckbox_CheckedChanged(object sender, EventArgs e) {
+			Configuration.KeepKeysInPlace = KeepKeysInPlaceCheckbox.Checked;
+			FillKeyGapsCheckbox.Enabled = KeepKeysInPlaceCheckbox.Checked;
+			OnSettingsChanged?.Invoke(this, new EventArgs());
+		}
+
+		private void FillKeyGapsCheckbox_CheckedChanged(object sender, EventArgs e) {
+			Configuration.FillKeyGaps = FillKeyGapsCheckbox.Checked;
+			OnSettingsChanged?.Invoke(this, new EventArgs());
+		}
+
+		private void GreyOutReleasedKeysCheckbox_CheckedChanged(object sender, EventArgs e) {
+			Configuration.GreyOutReleasedKeys = GreyOutReleasedKeysCheckbox.Checked;
+			UpdateFadeControls();
+			OnSettingsChanged?.Invoke(this, new EventArgs());
+		}
+
+		private void FadeColorRadio_CheckedChanged(object sender, EventArgs e) {
+			Configuration.UseFadeColor = FadeColorRadio.Checked;
+			UpdateFadeControls();
+			OnSettingsChanged?.Invoke(this, new EventArgs());
+		}
+
+		private void FadeOpacitySlider_ValueChanged(object sender, EventArgs e) {
+			Configuration.FadeOpacity = FadeOpacitySlider.Value;
+			UpdateFadeControls();
+			OnSettingsChanged?.Invoke(this, new EventArgs());
+		}
+
+		private void ButtonFadeColor_Click(object sender, EventArgs e) {
+			_fadeColor = SelectColor(_fadeColor);
+			Configuration.FadeColor = _fadeColor.ToArgb();
+			UpdateFadeControls();
+			OnSettingsChanged?.Invoke(this, new EventArgs());
+		}
+
+		private void ClearDelayBox_ValueChanged(object sender, EventArgs e) {
+			Configuration.ClearDelay = (int)ClearDelayBox.Value;
+			OnSettingsChanged?.Invoke(this, new EventArgs());
+		}
+
 		private void LogButtonsCheckbox_CheckedChanged(object sender, EventArgs e) {
 			Configuration.LogButtons = LogButtonsCheckbox.Checked;
 			OnSettingsChanged?.Invoke(this, new EventArgs());

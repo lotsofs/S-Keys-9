@@ -1,0 +1,15 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "S Keys 9",
+			"type": "clr",
+			"request": "launch",
+			"preLaunchTask": "Build",
+			"program": "${workspaceFolder}/SKeys9/SKeys9/bin/Debug/SKeys9.exe",
+			"cwd": "${workspaceFolder}/SKeys9/SKeys9/bin/Debug",
+			"console": "internalConsole",
+			"stopAtEntry": false
+		}
+	]
+}
