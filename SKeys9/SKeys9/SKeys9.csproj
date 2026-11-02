@@ -78,6 +78,9 @@
       <DependentUpon>CounterForm.cs</DependentUpon>
     </Compile>
     <Compile Include="EventArgs.cs" />
+    <Compile Include="FontPicker.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="FrameworkS\Bits.cs" />
     <Compile Include="FrameworkS\Dictionaries.cs" />
     <Compile Include="HeldKeyLayout.cs" />

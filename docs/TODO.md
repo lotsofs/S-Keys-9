@@ -6,6 +6,7 @@ Open work, one row per item. Within each group, rows are in suggested order of w
 
 | Code | Area | Summary | Severity |
 |---|---|---|---|
+| [CSZ](issues.md#csz--the-counter-windows-resize-and-lock-need-one-real-try) | Counter | Try the counter window's saved size and Lock Size with a real drag, including snapping to a screen edge, because they were only checked on hidden windows | Low |
 | [STK](issues.md#stk--a-lost-key-up-leaves-a-key-stuck) | Input | When a key-up never arrives, such as after an admin window takes focus or the PC locks, the key stays on the display, its next press is ignored, and `duration.log` gets inflated | Medium |
 | [BST](issues.md#bst--one-bad-value-stops-the-app-from-starting-silently) | Startup | One bad value in `skeys9.ini` or one damaged line in a log makes the app vanish at startup with no window or message | Medium |
 | [WRT](issues.md#wrt--a-file-that-cant-be-written-stops-the-app-or-raises-errors) | Startup | A file that can't be written stops the app from starting (`skeys9.ini.bak`, a `.log.bak`) or makes the autosave fail with an unhandled error every minute | Medium |
@@ -34,7 +35,7 @@ None of these are agreed yet. The order is best value for the effort first.
 
 | Code | Area | Summary | Value |
 |---|---|---|---|
-| [POS](ideas.md#pos--remember-the-windows-position-and-size) | Window | Remember the window's position and size between runs | High |
+| [POS](ideas.md#pos--remember-the-windows-position-and-size) | Window | Remember the main window's position and size between runs | High |
 | [PAU](ideas.md#pau--a-pause-hotkey-for-privacy) | Privacy | A global hotkey to pause the display, so a password typed on stream doesn't show | High |
 | [OVL](ideas.md#ovl--overlay-mode) | Window | Overlay mode: always on top, no title bar, transparent background, click-through | High |
 | [FAD](ideas.md#fad--a-smooth-fade) | Display | Fade released keys out smoothly over the Clear Delay, instead of one flat colour | Medium |

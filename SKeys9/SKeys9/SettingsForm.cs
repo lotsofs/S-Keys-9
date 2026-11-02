@@ -54,6 +54,42 @@ namespace SKeys9 {
 			panelCounterTextCol.BackColor = _counterForeColor;
 			_counterBackColor = Color.FromArgb(Configuration.CounterBackColor);
 			panelCounterBGCol.BackColor = _counterBackColor;
+
+			CounterFillAcrossCheckbox.Checked = Configuration.CounterFillAcross;
+
+			int counterColumns = Configuration.CounterColumns; // setting the range can change the box, which changes the setting
+			CounterColumnsBox.Maximum = Configuration.MaxCounterColumns;
+			CounterColumnsBox.Minimum = Configuration.MinCounterColumns;
+			CounterColumnsBox.Value = counterColumns;
+
+			int counterWidth = Configuration.CounterWindowWidth;
+			int counterHeight = Configuration.CounterWindowHeight;
+			CounterSizeXBox.Maximum = Configuration.MaxCounterWindowSize;
+			CounterSizeXBox.Minimum = Configuration.MinCounterWindowSize;
+			CounterSizeYBox.Maximum = Configuration.MaxCounterWindowSize;
+			CounterSizeYBox.Minimum = Configuration.MinCounterWindowSize;
+			CounterSizeXBox.Value = NearestValue(CounterSizeXBox, counterWidth);
+			CounterSizeYBox.Value = NearestValue(CounterSizeYBox, counterHeight);
+		}
+
+		/// <summary>
+		/// The counter window can be dragged while this window is open, and to sizes the boxes can't show
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		void SettingsForm_Activated(object sender, EventArgs e) {
+			CounterSizeXBox.Value = NearestValue(CounterSizeXBox, Configuration.CounterWindowWidth);
+			CounterSizeYBox.Value = NearestValue(CounterSizeYBox, Configuration.CounterWindowHeight);
+		}
+
+		/// <summary>
+		/// Finds the closest value a box can show, because it throws on any other
+		/// </summary>
+		/// <param name="box">the box</param>
+		/// <param name="value">the value</param>
+		/// <returns></returns>
+		decimal NearestValue(NumericUpDown box, int value) {
+			return Math.Min(Math.Max(value, box.Minimum), box.Maximum);
 		}
 
 		/// <summary>
@@ -143,6 +179,26 @@ namespace SKeys9 {
 			_counterBackColor = SelectColor(_counterBackColor);
 			Configuration.CounterBackColor = _counterBackColor.ToArgb();
 			panelCounterBGCol.BackColor = _counterBackColor;
+			OnSettingsChanged?.Invoke(this, new EventArgs());
+		}
+
+		private void CounterFillAcrossCheckbox_CheckedChanged(object sender, EventArgs e) {
+			Configuration.CounterFillAcross = CounterFillAcrossCheckbox.Checked;
+			OnSettingsChanged?.Invoke(this, new EventArgs());
+		}
+
+		private void CounterColumnsBox_ValueChanged(object sender, EventArgs e) {
+			Configuration.CounterColumns = (int)CounterColumnsBox.Value;
+			OnSettingsChanged?.Invoke(this, new EventArgs());
+		}
+
+		private void CounterSizeXBox_ValueChanged(object sender, EventArgs e) {
+			Configuration.CounterWindowWidth = (int)CounterSizeXBox.Value;
+			OnSettingsChanged?.Invoke(this, new EventArgs());
+		}
+
+		private void CounterSizeYBox_ValueChanged(object sender, EventArgs e) {
+			Configuration.CounterWindowHeight = (int)CounterSizeYBox.Value;
 			OnSettingsChanged?.Invoke(this, new EventArgs());
 		}
 

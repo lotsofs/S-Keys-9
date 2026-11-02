@@ -15,6 +15,9 @@ What changed for users of S Keys 9, per release. Downloads are on the [releases 
 - Key Display settings. Turn off **Keep Keys In Place** to have keys slide left when you release one, as they used to. Turn off **New Keys Fill Gaps** to always add a new key after the last one, so keys stay in the order you pressed them. Turn off **Grey Out Released Keys** to have keys disappear as soon as you let go.
 - **Clear Delay** in Key Display sets how long released keys and scroll counters stay, in milliseconds. It starts at 300, which is how long scroll counters have always stayed.
 - **Fade Opacity** and **Custom Fade Color** in Key Display set the colour of released keys: a blend between your background and text colours, or a colour of your own.
+- **Columns** in Counter Display shows the counter window's list in up to 10 columns of equal width. An entry too long for its column is cut short with `...`. If the list doesn't fit the window's height, the lowest counts are left out and the last spot says how many, such as `... (+5)`. Turn on **Fill Across, Then Down** to fill each row before the next, instead of each column.
+- The counter window reopens at the size you last gave it. **Window Size** in Counter Display sets an exact size in pixels, not counting the title bar and borders.
+- **Lock Size** in the counter window's right-click menu stops it from being resized by accident. You can still change its size in Settings.
 
 ### Changed
 
@@ -23,7 +26,7 @@ What changed for users of S Keys 9, per release. Downloads are on the [releases 
 
 ### Fixed
 
-- A held key with `&` in its name in `KeyNames.json` now shows the `&`.
+- A key with `&` in its name in `KeyNames.json` now shows the `&`, both while it's held and in the counter window.
 - **Key names are back** for OEM102 (`?226`) and other keys that showed as a number. A key left out of `KeyNames.json` now keeps its normal name, so your own copy keeps working.
 - Mouse movement logging now saves the vertical position as well as the horizontal one, and counts the time the mouse rests towards the spot where it rested. The log is now `mousemovemap.log`, which starts empty. `mousemove2map.log` is no longer used, so you can keep or delete it.
 - Mouse click and movement logging now saves the right position on monitors above or to the left of your main monitor. The click log is now `mouseinteractionmap.log`, which starts empty. `mouseinteraction2map.log` is no longer used, so you can keep or delete it.
@@ -34,6 +37,7 @@ What changed for users of S Keys 9, per release. Downloads are on the [releases 
 - S Keys 9 no longer fails to start when `KeyNames.json` is broken, or when its start folder can't be written to. A broken file gets a message naming the problem, and the normal key names are used until it's fixed.
 - A scroll direction you renamed in `KeyNames.json` now clears from the display like the others, instead of counting up forever.
 - Keys now show at once while you hold the mouse on the title bar or a title bar button of an S Keys 9 window, instead of half a second later or only after you let go.
+- **Change Font** now works for fonts that Windows lists as a family and a style, such as Arial Black. The font box used to open empty, and any size you picked was ignored.
 
 ## 0.8556.30292 (2023-06-05)
 

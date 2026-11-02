@@ -63,6 +63,17 @@ namespace SKeys9 {
 		internal static int CounterColor = unchecked((int)0xffffffff);
 		internal static int CounterBackColor = unchecked((int)0xff000000);
 
+		internal const int MinCounterColumns = 1;
+		internal const int MaxCounterColumns = 10;
+		internal static int CounterColumns = 1;
+		internal static bool CounterFillAcross = false;
+
+		internal const int MinCounterWindowSize = 1;
+		internal const int MaxCounterWindowSize = 10000;
+		internal static int CounterWindowWidth = 292;	// pixels inside the window, without its title bar and borders
+		internal static int CounterWindowHeight = 1007;
+		internal static bool CounterSizeLocked = false;
+
 
 		static Dictionary<string, string> serializableSettings = new Dictionary<string, string>();
 
@@ -152,6 +163,21 @@ namespace SKeys9 {
 						Configuration.CounterBackColor = unchecked(int.Parse(serializableSettings[setting].Substring(rIndexCB), System.Globalization.NumberStyles.HexNumber));
 						Configuration.CounterBackColor |= unchecked((int)0xff000000);
 						break;
+					case "CounterColumns":
+						Configuration.CounterColumns = Math.Min(Math.Max(int.Parse(serializableSettings[setting]), MinCounterColumns), MaxCounterColumns);
+						break;
+					case "CounterFillAcross":
+						Configuration.CounterFillAcross = bool.Parse(serializableSettings[setting]);
+						break;
+					case "CounterWindowWidth":
+						Configuration.CounterWindowWidth = Math.Min(Math.Max(int.Parse(serializableSettings[setting]), MinCounterWindowSize), MaxCounterWindowSize);
+						break;
+					case "CounterWindowHeight":
+						Configuration.CounterWindowHeight = Math.Min(Math.Max(int.Parse(serializableSettings[setting]), MinCounterWindowSize), MaxCounterWindowSize);
+						break;
+					case "CounterSizeLocked":
+						Configuration.CounterSizeLocked = bool.Parse(serializableSettings[setting]);
+						break;
 					case "MinimizeToTray":
 						Configuration.MinimizeToTray = bool.Parse(serializableSettings[setting]);
 						break;
@@ -210,6 +236,11 @@ namespace SKeys9 {
 			S.Dictionaries.SetValue(serializableSettings, "CounterStyle", Configuration.CounterStyle.ToString());
 			S.Dictionaries.SetValue(serializableSettings, "CounterColor", Configuration.CounterColor.ToString("X6").Substring(2));
 			S.Dictionaries.SetValue(serializableSettings, "CounterBackColor", Configuration.CounterBackColor.ToString("X6").Substring(2));
+			S.Dictionaries.SetValue(serializableSettings, "CounterColumns", Configuration.CounterColumns.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "CounterFillAcross", Configuration.CounterFillAcross.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "CounterWindowWidth", Configuration.CounterWindowWidth.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "CounterWindowHeight", Configuration.CounterWindowHeight.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "CounterSizeLocked", Configuration.CounterSizeLocked.ToString());
 			S.Dictionaries.SetValue(serializableSettings, "MinimizeToTray", Configuration.MinimizeToTray.ToString());
 			S.Dictionaries.SetValue(serializableSettings, "ExitToTray", Configuration.ExitToTray.ToString());
 			S.Dictionaries.SetValue(serializableSettings, "KeepKeysInPlace", Configuration.KeepKeysInPlace.ToString());
@@ -223,6 +254,22 @@ namespace SKeys9 {
 			S.Dictionaries.SetValue(serializableSettings, "LogClicks", Configuration.LogClicks.ToString());
 			S.Dictionaries.SetValue(serializableSettings, "LogMovement", Configuration.LogMovement.ToString());
 			SaveSettings();
+		}
+
+		/// <summary>
+		/// Saves the counter window's size and lock. They change outside the settings window, so this
+		/// writes only them, which keeps any settings still being previewed out of the file
+		/// </summary>
+		internal static void SaveCounterWindow() {
+			S.Dictionaries.SetValue(serializableSettings, "CounterWindowWidth", Configuration.CounterWindowWidth.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "CounterWindowHeight", Configuration.CounterWindowHeight.ToString());
+			S.Dictionaries.SetValue(serializableSettings, "CounterSizeLocked", Configuration.CounterSizeLocked.ToString());
+			try {
+				SaveSettings();
+			}
+			catch (Exception e) when (e is IOException || e is UnauthorizedAccessException) {
+				Log.Write("Couldn't save the counter window's size: " + e.Message);
+			}
 		}
 
 		/// <summary>

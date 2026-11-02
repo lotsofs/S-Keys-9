@@ -4,7 +4,7 @@ Detail for the ideas in [TODO.md](TODO.md). None of these are agreed yet. The Gi
 
 ## POS — Remember the window's position and size
 
-`skeys9.ini` holds no window position, so S Keys opens in the default spot and size on every start. Anyone who sets up a layout, or an OBS window capture, has to redo it each time.
+`skeys9.ini` holds no position or size for the main window, so S Keys opens in the default spot and size on every start. Anyone who sets up a layout, or an OBS window capture, has to redo it each time.
 
 **Plan (small):** add `WindowX`, `WindowY`, `WindowWidth` and `WindowHeight`, saved on exit and on shutdown. On load, check the position is on a connected monitor, since this PC has screens at negative X.
 

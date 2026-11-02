@@ -27,7 +27,7 @@
 			this.MinimizeToTrayCheckBox = new System.Windows.Forms.CheckBox();
 			this.ExitToTrayCheckBox = new System.Windows.Forms.CheckBox();
 			this.FontButton = new System.Windows.Forms.Button();
-			this.FontDialog = new System.Windows.Forms.FontDialog();
+			this.FontDialog = new SKeys9.FontPicker();
 			this.OkButton = new System.Windows.Forms.Button();
 			this.ÁbortButton = new System.Windows.Forms.Button();
 			this.FontLabel = new System.Windows.Forms.Label();
@@ -51,6 +51,14 @@
 			this.panelCounterTextCol = new System.Windows.Forms.Panel();
 			this.buttonCounterBGCol = new System.Windows.Forms.Button();
 			this.buttonCounterTextCol = new System.Windows.Forms.Button();
+			this.CounterFillAcrossCheckbox = new System.Windows.Forms.CheckBox();
+			this.CounterColumnsLabel = new System.Windows.Forms.Label();
+			this.CounterColumnsBox = new System.Windows.Forms.NumericUpDown();
+			this.CounterSizeLabel = new System.Windows.Forms.Label();
+			this.CounterSizeXLabel = new System.Windows.Forms.Label();
+			this.CounterSizeXBox = new System.Windows.Forms.NumericUpDown();
+			this.CounterSizeYLabel = new System.Windows.Forms.Label();
+			this.CounterSizeYBox = new System.Windows.Forms.NumericUpDown();
 			this.GroupBoxKeyDisplay = new System.Windows.Forms.GroupBox();
 			this.KeepKeysInPlaceCheckbox = new System.Windows.Forms.CheckBox();
 			this.FillKeyGapsCheckbox = new System.Windows.Forms.CheckBox();
@@ -69,6 +77,9 @@
 			this.GroupBoxFeatures.SuspendLayout();
 			this.groupBoxCounter.SuspendLayout();
 			this.GroupBoxKeyDisplay.SuspendLayout();
+			((System.ComponentModel.ISupportInitialize)(this.CounterColumnsBox)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.CounterSizeXBox)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.CounterSizeYBox)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.ClearDelayBox)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.FadeOpacitySlider)).BeginInit();
 			this.SuspendLayout();
@@ -267,9 +278,17 @@
 			this.groupBoxCounter.Controls.Add(this.buttonCounterFont);
 			this.groupBoxCounter.Controls.Add(this.buttonCounterBGCol);
 			this.groupBoxCounter.Controls.Add(this.buttonCounterTextCol);
+			this.groupBoxCounter.Controls.Add(this.CounterFillAcrossCheckbox);
+			this.groupBoxCounter.Controls.Add(this.CounterColumnsLabel);
+			this.groupBoxCounter.Controls.Add(this.CounterColumnsBox);
+			this.groupBoxCounter.Controls.Add(this.CounterSizeLabel);
+			this.groupBoxCounter.Controls.Add(this.CounterSizeXLabel);
+			this.groupBoxCounter.Controls.Add(this.CounterSizeXBox);
+			this.groupBoxCounter.Controls.Add(this.CounterSizeYLabel);
+			this.groupBoxCounter.Controls.Add(this.CounterSizeYBox);
 			this.groupBoxCounter.Location = new System.Drawing.Point(12, 196);
 			this.groupBoxCounter.Name = "groupBoxCounter";
-			this.groupBoxCounter.Size = new System.Drawing.Size(406, 78);
+			this.groupBoxCounter.Size = new System.Drawing.Size(406, 127);
 			this.groupBoxCounter.TabIndex = 12;
 			this.groupBoxCounter.TabStop = false;
 			this.groupBoxCounter.Text = "Counter Display";
@@ -330,6 +349,77 @@
 			this.buttonCounterTextCol.UseVisualStyleBackColor = true;
 			this.buttonCounterTextCol.Click += new System.EventHandler(this.buttonCounterTextCol_Click);
 			//
+			// CounterFillAcrossCheckbox
+			//
+			this.CounterFillAcrossCheckbox.AutoSize = true;
+			this.CounterFillAcrossCheckbox.Location = new System.Drawing.Point(6, 77);
+			this.CounterFillAcrossCheckbox.Name = "CounterFillAcrossCheckbox";
+			this.CounterFillAcrossCheckbox.Size = new System.Drawing.Size(138, 17);
+			this.CounterFillAcrossCheckbox.TabIndex = 9;
+			this.CounterFillAcrossCheckbox.Text = "Fill Across, Then Down";
+			this.CounterFillAcrossCheckbox.UseVisualStyleBackColor = true;
+			this.CounterFillAcrossCheckbox.CheckedChanged += new System.EventHandler(this.CounterFillAcrossCheckbox_CheckedChanged);
+			//
+			// CounterColumnsLabel
+			//
+			this.CounterColumnsLabel.AutoSize = true;
+			this.CounterColumnsLabel.Location = new System.Drawing.Point(213, 79);
+			this.CounterColumnsLabel.Name = "CounterColumnsLabel";
+			this.CounterColumnsLabel.Size = new System.Drawing.Size(47, 13);
+			this.CounterColumnsLabel.TabIndex = 10;
+			this.CounterColumnsLabel.Text = "Columns";
+			//
+			// CounterColumnsBox
+			//
+			this.CounterColumnsBox.Location = new System.Drawing.Point(319, 77);
+			this.CounterColumnsBox.Name = "CounterColumnsBox";
+			this.CounterColumnsBox.Size = new System.Drawing.Size(81, 20);
+			this.CounterColumnsBox.TabIndex = 11;
+			this.CounterColumnsBox.ValueChanged += new System.EventHandler(this.CounterColumnsBox_ValueChanged);
+			//
+			// CounterSizeLabel
+			//
+			this.CounterSizeLabel.AutoSize = true;
+			this.CounterSizeLabel.Location = new System.Drawing.Point(6, 102);
+			this.CounterSizeLabel.Name = "CounterSizeLabel";
+			this.CounterSizeLabel.Size = new System.Drawing.Size(88, 13);
+			this.CounterSizeLabel.TabIndex = 12;
+			this.CounterSizeLabel.Text = "Window Size (px)";
+			//
+			// CounterSizeXLabel
+			//
+			this.CounterSizeXLabel.AutoSize = true;
+			this.CounterSizeXLabel.Location = new System.Drawing.Point(213, 102);
+			this.CounterSizeXLabel.Name = "CounterSizeXLabel";
+			this.CounterSizeXLabel.Size = new System.Drawing.Size(14, 13);
+			this.CounterSizeXLabel.TabIndex = 13;
+			this.CounterSizeXLabel.Text = "X";
+			//
+			// CounterSizeXBox
+			//
+			this.CounterSizeXBox.Location = new System.Drawing.Point(230, 100);
+			this.CounterSizeXBox.Name = "CounterSizeXBox";
+			this.CounterSizeXBox.Size = new System.Drawing.Size(70, 20);
+			this.CounterSizeXBox.TabIndex = 14;
+			this.CounterSizeXBox.ValueChanged += new System.EventHandler(this.CounterSizeXBox_ValueChanged);
+			//
+			// CounterSizeYLabel
+			//
+			this.CounterSizeYLabel.AutoSize = true;
+			this.CounterSizeYLabel.Location = new System.Drawing.Point(312, 102);
+			this.CounterSizeYLabel.Name = "CounterSizeYLabel";
+			this.CounterSizeYLabel.Size = new System.Drawing.Size(14, 13);
+			this.CounterSizeYLabel.TabIndex = 15;
+			this.CounterSizeYLabel.Text = "Y";
+			//
+			// CounterSizeYBox
+			//
+			this.CounterSizeYBox.Location = new System.Drawing.Point(330, 100);
+			this.CounterSizeYBox.Name = "CounterSizeYBox";
+			this.CounterSizeYBox.Size = new System.Drawing.Size(70, 20);
+			this.CounterSizeYBox.TabIndex = 16;
+			this.CounterSizeYBox.ValueChanged += new System.EventHandler(this.CounterSizeYBox_ValueChanged);
+			//
 			// GroupBoxKeyDisplay
 			//
 			this.GroupBoxKeyDisplay.Controls.Add(this.KeepKeysInPlaceCheckbox);
@@ -343,7 +433,7 @@
 			this.GroupBoxKeyDisplay.Controls.Add(this.FadeColorRadio);
 			this.GroupBoxKeyDisplay.Controls.Add(this.ButtonFadeColor);
 			this.GroupBoxKeyDisplay.Controls.Add(this.FadeColorPreview);
-			this.GroupBoxKeyDisplay.Location = new System.Drawing.Point(12, 280);
+			this.GroupBoxKeyDisplay.Location = new System.Drawing.Point(12, 329);
 			this.GroupBoxKeyDisplay.Name = "GroupBoxKeyDisplay";
 			this.GroupBoxKeyDisplay.Size = new System.Drawing.Size(406, 124);
 			this.GroupBoxKeyDisplay.TabIndex = 13;
@@ -476,7 +566,7 @@
 			//
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(511, 415);
+			this.ClientSize = new System.Drawing.Size(511, 464);
 			this.Controls.Add(this.GroupBoxKeyDisplay);
 			this.Controls.Add(this.groupBoxCounter);
 			this.Controls.Add(this.GroupBoxFeatures);
@@ -488,6 +578,7 @@
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
 			this.Name = "SettingsForm";
 			this.Text = "Settings";
+			this.Activated += new System.EventHandler(this.SettingsForm_Activated);
 			this.GroupBoxFont.ResumeLayout(false);
 			this.GroupBoxWindow.ResumeLayout(false);
 			this.GroupBoxWindow.PerformLayout();
@@ -495,8 +586,12 @@
 			this.GroupBoxFeatures.ResumeLayout(false);
 			this.GroupBoxFeatures.PerformLayout();
 			this.groupBoxCounter.ResumeLayout(false);
+			this.groupBoxCounter.PerformLayout();
 			this.GroupBoxKeyDisplay.ResumeLayout(false);
 			this.GroupBoxKeyDisplay.PerformLayout();
+			((System.ComponentModel.ISupportInitialize)(this.CounterColumnsBox)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.CounterSizeXBox)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.CounterSizeYBox)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.ClearDelayBox)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.FadeOpacitySlider)).EndInit();
 			this.ResumeLayout(false);
@@ -507,7 +602,7 @@
 		private System.Windows.Forms.CheckBox MinimizeToTrayCheckBox;
 		private System.Windows.Forms.CheckBox ExitToTrayCheckBox;
 		private System.Windows.Forms.Button FontButton;
-		private System.Windows.Forms.FontDialog FontDialog;
+		private SKeys9.FontPicker FontDialog;
 		private System.Windows.Forms.Button OkButton;
 		private System.Windows.Forms.Button ÁbortButton;
 		private System.Windows.Forms.Label FontLabel;
@@ -531,6 +626,14 @@
 		private System.Windows.Forms.Button buttonCounterFont;
 		private System.Windows.Forms.Button buttonCounterBGCol;
 		private System.Windows.Forms.Button buttonCounterTextCol;
+		private System.Windows.Forms.CheckBox CounterFillAcrossCheckbox;
+		private System.Windows.Forms.Label CounterColumnsLabel;
+		private System.Windows.Forms.NumericUpDown CounterColumnsBox;
+		private System.Windows.Forms.Label CounterSizeLabel;
+		private System.Windows.Forms.Label CounterSizeXLabel;
+		private System.Windows.Forms.NumericUpDown CounterSizeXBox;
+		private System.Windows.Forms.Label CounterSizeYLabel;
+		private System.Windows.Forms.NumericUpDown CounterSizeYBox;
 		private System.Windows.Forms.GroupBox GroupBoxKeyDisplay;
 		private System.Windows.Forms.CheckBox KeepKeysInPlaceCheckbox;
 		private System.Windows.Forms.CheckBox FillKeyGapsCheckbox;

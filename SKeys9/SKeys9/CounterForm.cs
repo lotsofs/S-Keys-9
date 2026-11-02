@@ -14,10 +14,13 @@ namespace SKeys9 {
 		Dictionary<string, int> _inputsCount = new Dictionary<string, int>();
 		List<string> _previousHeld = new List<string>();
 		Dictionary<string, int> _previousScroll = new Dictionary<string, int>();
+		List<string> _entries = new List<string>();
+		int _lineHeight;
 
 		public CounterForm(Input input) {
 			InitializeComponent();
 			input.OnKeysChanged += ChangeCount;
+			ApplySizeLock();
 			UpdateAppearance();
 		}
 
@@ -29,8 +32,25 @@ namespace SKeys9 {
 		public void UpdateAppearance(object sender = null, EventArgs e = null) {
 			Font font = new Font(Configuration.CounterName, Configuration.CounterSize, (FontStyle)Configuration.CounterStyle);
 			Display.Font = font;
+			_lineHeight = TextRenderer.MeasureText("A", font).Height; // taller than font.Height, which would clip the entries
 			Display.ForeColor = Color.FromArgb(Configuration.CounterColor);
 			this.BackColor = Color.FromArgb(Configuration.CounterBackColor);
+			if (WindowState == FormWindowState.Normal) {
+				ClientSize = new Size(Configuration.CounterWindowWidth, Configuration.CounterWindowHeight);
+			}
+			Display.Invalidate();
+		}
+
+		/// <summary>
+		/// Locks or unlocks the window's size. Windows won't let this border be resized,
+		/// but it's a different thickness, so this keeps the inside of the window the same size
+		/// </summary>
+		void ApplySizeLock() {
+			Size inside = ClientSize;
+			ToolStripMenuItemLockSize.Checked = Configuration.CounterSizeLocked;
+			MaximizeBox = !Configuration.CounterSizeLocked;
+			FormBorderStyle = Configuration.CounterSizeLocked ? FormBorderStyle.FixedSingle : FormBorderStyle.Sizable;
+			ClientSize = inside;
 		}
 
 		/// <summary>
@@ -82,19 +102,57 @@ namespace SKeys9 {
 		/// Update text in the window
 		/// </summary>
 		private void UpdateText() {
-			StringBuilder sb = new StringBuilder();
-			foreach (KeyValuePair<string, int> kvp in _inputsCount.OrderByDescending(pair => pair.Value)) {
-				sb.Append(kvp.Key);
-				sb.Append(": ");
-				sb.Append(kvp.Value);
-				sb.Append("\n");
+			_entries = _inputsCount.OrderByDescending(pair => pair.Value).Select(pair => pair.Key + ": " + pair.Value).ToList();
+			Display.Invalidate();
+		}
+
+		/// <summary>
+		/// Draws the list in columns of equal width. Each entry is drawn by itself, because text of several
+		/// lines only gets an ellipsis on its last one. A list that's too long for the window fills it in
+		/// order, so only the end of the list is left out, and the last spot says how many entries that is
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		void Display_Paint(object sender, PaintEventArgs e) {
+			int columns = Configuration.CounterColumns;
+			int rowsThatFit = Math.Max(Display.ClientSize.Height / _lineHeight, 1);
+			int rows = Math.Min((_entries.Count + columns - 1) / columns, rowsThatFit);
+			int width = Display.ClientSize.Width / columns;
+			int shown = Math.Min(_entries.Count, rows * columns);
+			for (int i = 0; i < shown; i++) {
+				int column = Configuration.CounterFillAcross ? i % columns : i / rows;
+				int row = Configuration.CounterFillAcross ? i / columns : i % rows;
+				Rectangle cell = new Rectangle(column * width, row * _lineHeight, width, _lineHeight);
+				string text = i == shown - 1 && shown < _entries.Count ? "... (+" + (_entries.Count - i) + ")" : _entries[i];
+				TextRenderer.DrawText(e.Graphics, text, Display.Font, cell, Display.ForeColor, TextFormatFlags.NoPrefix | TextFormatFlags.EndEllipsis);
 			}
-			Display.Text = sb.ToString();
+		}
+
+		/// <summary>
+		/// Saves the size the window was just given. This also runs after a plain move
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		void CounterForm_ResizeEnd(object sender, EventArgs e) {
+			bool sameSize = ClientSize.Width == Configuration.CounterWindowWidth && ClientSize.Height == Configuration.CounterWindowHeight;
+			if (WindowState != FormWindowState.Normal || sameSize) {
+				return;
+			}
+			Configuration.CounterWindowWidth = ClientSize.Width;
+			Configuration.CounterWindowHeight = ClientSize.Height;
+			Configuration.SaveCounterWindow();
 		}
 
 		private void ToolStripMenuItemReset_Click(object sender, EventArgs e) {
 			_inputsCount.Clear();
-			Display.Text = string.Empty;
+			UpdateText();
+		}
+
+		private void ToolStripMenuItemLockSize_Click(object sender, EventArgs e) {
+			WindowState = FormWindowState.Normal; // a locked window has no button to come back from being maximised
+			Configuration.CounterSizeLocked = ToolStripMenuItemLockSize.Checked;
+			ApplySizeLock();
+			Configuration.SaveCounterWindow();
 		}
 	}
 }
