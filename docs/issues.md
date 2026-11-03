@@ -8,16 +8,6 @@ Dependencies between these plans:
 - **LIN and LBW:** drawing the scroll line in `DisplayText_Paint` (LIN) also solves LBW, so do LIN first.
 - **STK and TMR:** STK's repair runs in the hook check, so the longer interval TMR allows would also delay clearing a stuck key.
 
-## CSZ — The counter window's resize and lock need one real try
-
-The counter window's saved size and Lock Size haven't met a real drag. They were checked on hidden windows, by sending the message Windows sends when a resize ends and by reading the window's styles.
-
-**Evidence:** verified that way 2026-11-02, as 32-bit and 64-bit. That Windows refuses to drag a locked window is only read. So is what happens when the window is snapped to a screen edge: `ResizeEnd` may arrive before the snap, which would leave the snapped size unsaved.
-
-**Verify:** run with Ctrl+F5 and open the counter window. Drag an edge, then close and reopen it: it keeps the size. Restart: it still does. Turn on Lock Size: the edges no longer drag, there's no maximise button, double-clicking the title bar does nothing, and dragging it to a screen edge doesn't snap it. Turn it off: all of that works again. Snap it to a screen edge, close and reopen it, and note which size comes back.
-
-**Docs when done:** none, unless the snap needs a fix.
-
 ## STK — A lost key-up leaves a key stuck
 
 Windows keeps input from the hooks on the lock screen and while an elevated window has focus. A key that was down when that started never gets its key-up. Examples are the Win key in Win+L, or Alt when Alt+Tab lands on an admin window.

@@ -6,7 +6,6 @@ Open work, one row per item. Within each group, rows are in suggested order of w
 
 | Code | Area | Summary | Severity |
 |---|---|---|---|
-| [CSZ](issues.md#csz--the-counter-windows-resize-and-lock-need-one-real-try) | Counter | Try the counter window's saved size and Lock Size with a real drag, including snapping to a screen edge, because they were only checked on hidden windows | Low |
 | [STK](issues.md#stk--a-lost-key-up-leaves-a-key-stuck) | Input | When a key-up never arrives, such as after an admin window takes focus or the PC locks, the key stays on the display, its next press is ignored, and `duration.log` gets inflated | Medium |
 | [BST](issues.md#bst--one-bad-value-stops-the-app-from-starting-silently) | Startup | One bad value in `skeys9.ini` or one damaged line in a log makes the app vanish at startup with no window or message | Medium |
 | [WRT](issues.md#wrt--a-file-that-cant-be-written-stops-the-app-or-raises-errors) | Startup | A file that can't be written stops the app from starting (`skeys9.ini.bak`, a `.log.bak`) or makes the autosave fail with an unhandled error every minute | Medium |
