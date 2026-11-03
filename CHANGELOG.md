@@ -10,7 +10,7 @@ What changed for users of S Keys 9, per release. Downloads are on the [releases 
 
 ### Added
 
-- `debuglog.log` next to `SKeys9.exe` records errors, when S Keys 9 had to reconnect to Windows, when it couldn't see your input, such as on the lock screen or while a program running as administrator has focus, and keys it cleared because it couldn't see you let go of them, with the time. It only appears once there's something to record.
+- `debuglog.log` next to `SKeys9.exe` records errors, settings and saved statistics it couldn't read, when S Keys 9 had to reconnect to Windows, when it couldn't see your input, such as on the lock screen or while a program running as administrator has focus, and keys it cleared because it couldn't see you let go of them, with the time. It only appears once there's something to record.
 - Keys you let go of stay on the display in grey for a moment before they disappear, so a quick tap is easier to see.
 - Key Display settings. Turn off **Keep Keys In Place** to have keys slide left when you release one, as they used to. Turn off **New Keys Fill Gaps** to always add a new key after the last one, so keys stay in the order you pressed them. Turn off **Grey Out Released Keys** to have keys disappear as soon as you let go.
 - **Clear Delay** in Key Display sets how long released keys and scroll counters stay, in milliseconds. It starts at 300, which is how long scroll counters have always stayed.
@@ -35,6 +35,7 @@ What changed for users of S Keys 9, per release. Downloads are on the [releases 
 - Saving can no longer leave a log cut short.
 - Mouse movement from just before closing S Keys 9 is now saved.
 - S Keys 9 no longer fails to start when `KeyNames.json` is broken, or when its start folder can't be written to. A broken file gets a message naming the problem, and the normal key names are used until it's fixed.
+- S Keys 9 no longer closes at startup without a word when `skeys9.ini` has a value it can't use, or a statistics log such as `count.log` is damaged. A setting it can't use keeps its normal value. A damaged log keeps every line that can still be read, and the file as it was is kept with `.bad` added to its name, such as `count.log.bad`. Both are noted in `debuglog.log`. If S Keys 9 still can't start, it now shows a message saying why.
 - A scroll direction you renamed in `KeyNames.json` now clears from the display like the others, instead of counting up forever.
 - Keys now show at once while you hold the mouse on the title bar or a title bar button of an S Keys 9 window, instead of half a second later or only after you let go.
 - **Change Font** now works for fonts that Windows lists as a family and a style, such as Arial Black. The font box used to open empty, and any size you picked was ignored.

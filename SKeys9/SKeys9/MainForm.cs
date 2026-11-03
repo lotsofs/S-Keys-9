@@ -19,9 +19,9 @@ namespace SKeys9 {
 			Configuration.ReadSettings();
 			UpdateAppearance();
 
-			Application.ApplicationExit += new EventHandler(PrepareProgramForExit);
 			Keys.ReadJson();
 			AddHooks();
+			Application.ApplicationExit += new EventHandler(PrepareProgramForExit); // only once there's something to save
 		}
 
 		#region startup
@@ -30,8 +30,8 @@ namespace SKeys9 {
 		/// Creates the hooks and adds the listeners
 		/// </summary>
 		void AddHooks() {
-			_hooks = new Hooks();
 			_input = new Input();
+			_hooks = new Hooks(); // after the logs load, so a failed start leaves no hook check timer running behind its message
 
 			_keyRemoveTimer = new Timer();
 			_keyRemoveTimer.Tick += OnKeyRemoveTimerTick;

@@ -117,9 +117,16 @@ namespace SKeys9 {
 		}
 
 		/// <summary>
-		/// Applies loaded settings to the tool
+		/// Applies loaded settings to the tool. A value that can't be used leaves its setting as it was, and is logged
 		/// </summary>
 		internal static void LoadSettings() {
+			string name = Configuration.Name;
+			float size = Configuration.Size;
+			int style = Configuration.Style;
+			string counterName = Configuration.CounterName;
+			float counterSize = Configuration.CounterSize;
+			int counterStyle = Configuration.CounterStyle;
+
 			foreach (string setting in serializableSettings.Keys) {
 				Debug.WriteLine(setting);
 				switch (setting) {
@@ -129,98 +136,191 @@ namespace SKeys9 {
 						Configuration.Name = serializableSettings[setting];
 						break;
 					case "Size":
-						Configuration.Size = float.Parse(serializableSettings[setting]);
+						Configuration.Size = ReadFloat(setting, Configuration.Size);
 						break;
 					case "Style":
-						Configuration.Style = int.Parse(serializableSettings[setting]);
+						Configuration.Style = ReadInt(setting, Configuration.Style);
 						break;
 					case "Color":
-						int rIndex = serializableSettings[setting].Length - 6;
-						Configuration.Color = unchecked(int.Parse(serializableSettings[setting].Substring(rIndex), System.Globalization.NumberStyles.HexNumber));
-						Configuration.Color |= unchecked((int)0xff000000);
+						Configuration.Color = ReadColor(setting, Configuration.Color);
 						break;
 					case "BackColor":
-						int rIndexB = serializableSettings[setting].Length - 6;
-						Configuration.BackColor = unchecked(int.Parse(serializableSettings[setting].Substring(rIndexB), System.Globalization.NumberStyles.HexNumber));
-						Configuration.BackColor |= unchecked((int)0xff000000);
+						Configuration.BackColor = ReadColor(setting, Configuration.BackColor);
 						break;
 					case "CounterName":
 						Configuration.CounterName = serializableSettings[setting];
 						break;
 					case "CounterSize":
-						Configuration.CounterSize = float.Parse(serializableSettings[setting]);
+						Configuration.CounterSize = ReadFloat(setting, Configuration.CounterSize);
 						break;
 					case "CounterStyle":
-						Configuration.CounterStyle = int.Parse(serializableSettings[setting]);
+						Configuration.CounterStyle = ReadInt(setting, Configuration.CounterStyle);
 						break;
 					case "CounterColor":
-						int rIndexC = serializableSettings[setting].Length - 6;
-						Configuration.CounterColor = unchecked(int.Parse(serializableSettings[setting].Substring(rIndexC), System.Globalization.NumberStyles.HexNumber));
-						Configuration.CounterColor |= unchecked((int)0xff000000);
+						Configuration.CounterColor = ReadColor(setting, Configuration.CounterColor);
 						break;
 					case "CounterBackColor":
-						int rIndexCB = serializableSettings[setting].Length - 6;
-						Configuration.CounterBackColor = unchecked(int.Parse(serializableSettings[setting].Substring(rIndexCB), System.Globalization.NumberStyles.HexNumber));
-						Configuration.CounterBackColor |= unchecked((int)0xff000000);
+						Configuration.CounterBackColor = ReadColor(setting, Configuration.CounterBackColor);
 						break;
 					case "CounterColumns":
-						Configuration.CounterColumns = Math.Min(Math.Max(int.Parse(serializableSettings[setting]), MinCounterColumns), MaxCounterColumns);
+						Configuration.CounterColumns = Math.Min(Math.Max(ReadInt(setting, Configuration.CounterColumns), MinCounterColumns), MaxCounterColumns);
 						break;
 					case "CounterFillAcross":
-						Configuration.CounterFillAcross = bool.Parse(serializableSettings[setting]);
+						Configuration.CounterFillAcross = ReadBool(setting, Configuration.CounterFillAcross);
 						break;
 					case "CounterWindowWidth":
-						Configuration.CounterWindowWidth = Math.Min(Math.Max(int.Parse(serializableSettings[setting]), MinCounterWindowSize), MaxCounterWindowSize);
+						Configuration.CounterWindowWidth = Math.Min(Math.Max(ReadInt(setting, Configuration.CounterWindowWidth), MinCounterWindowSize), MaxCounterWindowSize);
 						break;
 					case "CounterWindowHeight":
-						Configuration.CounterWindowHeight = Math.Min(Math.Max(int.Parse(serializableSettings[setting]), MinCounterWindowSize), MaxCounterWindowSize);
+						Configuration.CounterWindowHeight = Math.Min(Math.Max(ReadInt(setting, Configuration.CounterWindowHeight), MinCounterWindowSize), MaxCounterWindowSize);
 						break;
 					case "CounterSizeLocked":
-						Configuration.CounterSizeLocked = bool.Parse(serializableSettings[setting]);
+						Configuration.CounterSizeLocked = ReadBool(setting, Configuration.CounterSizeLocked);
 						break;
 					case "MinimizeToTray":
-						Configuration.MinimizeToTray = bool.Parse(serializableSettings[setting]);
+						Configuration.MinimizeToTray = ReadBool(setting, Configuration.MinimizeToTray);
 						break;
 					case "ExitToTray":
-						Configuration.ExitToTray = bool.Parse(serializableSettings[setting]);
+						Configuration.ExitToTray = ReadBool(setting, Configuration.ExitToTray);
 						break;
 					case "KeepKeysInPlace":
-						Configuration.KeepKeysInPlace = bool.Parse(serializableSettings[setting]);
+						Configuration.KeepKeysInPlace = ReadBool(setting, Configuration.KeepKeysInPlace);
 						break;
 					case "FillKeyGaps":
-						Configuration.FillKeyGaps = bool.Parse(serializableSettings[setting]);
+						Configuration.FillKeyGaps = ReadBool(setting, Configuration.FillKeyGaps);
 						break;
 					case "GreyOutReleasedKeys":
-						Configuration.GreyOutReleasedKeys = bool.Parse(serializableSettings[setting]);
+						Configuration.GreyOutReleasedKeys = ReadBool(setting, Configuration.GreyOutReleasedKeys);
 						break;
 					case "ClearDelay":
 						// a timer can't take 0, and the settings window's box can't show anything outside the range
-						int clearDelay = int.Parse(serializableSettings[setting]);
+						int clearDelay = ReadInt(setting, Configuration.ClearDelay);
 						Configuration.ClearDelay = Math.Min(Math.Max(clearDelay, MinClearDelay), MaxClearDelay);
 						break;
 					case "FadeOpacity":
-						Configuration.FadeOpacity = Math.Min(Math.Max(int.Parse(serializableSettings[setting]), 0), 100);
+						Configuration.FadeOpacity = Math.Min(Math.Max(ReadInt(setting, Configuration.FadeOpacity), 0), 100);
 						break;
 					case "UseFadeColor":
-						Configuration.UseFadeColor = bool.Parse(serializableSettings[setting]);
+						Configuration.UseFadeColor = ReadBool(setting, Configuration.UseFadeColor);
 						break;
 					case "FadeColor":
-						int rIndexF = serializableSettings[setting].Length - 6;
-						Configuration.FadeColor = unchecked(int.Parse(serializableSettings[setting].Substring(rIndexF), System.Globalization.NumberStyles.HexNumber));
-						Configuration.FadeColor |= unchecked((int)0xff000000);
+						Configuration.FadeColor = ReadColor(setting, Configuration.FadeColor);
 						break;
 					case "LogButtons":
-						Configuration.LogButtons = bool.Parse(serializableSettings[setting]);
+						Configuration.LogButtons = ReadBool(setting, Configuration.LogButtons);
 						break;
 					case "LogClicks":
-						Configuration.LogClicks = bool.Parse(serializableSettings[setting]);
+						Configuration.LogClicks = ReadBool(setting, Configuration.LogClicks);
 						break;
 					case "LogMovement":
-						Configuration.LogMovement = bool.Parse(serializableSettings[setting]);
+						Configuration.LogMovement = ReadBool(setting, Configuration.LogMovement);
 						break;
 				}
 			}
+
+			CheckFont("", ref Configuration.Name, ref Configuration.Size, ref Configuration.Style, name, size, style);
+			CheckFont("Counter", ref Configuration.CounterName, ref Configuration.CounterSize, ref Configuration.CounterStyle, counterName, counterSize, counterStyle);
 		}
+
+		#region reading settings
+
+		/// <summary>
+		/// Reads a true or false setting
+		/// </summary>
+		/// <param name="setting">the setting's name</param>
+		/// <param name="current">what it stays if the value can't be read</param>
+		/// <returns>the value</returns>
+		static bool ReadBool(string setting, bool current) {
+			bool value;
+			if (bool.TryParse(serializableSettings[setting], out value)) {
+				return value;
+			}
+			LogBadSetting(setting, current.ToString());
+			return current;
+		}
+
+		/// <summary>
+		/// Reads a whole number setting
+		/// </summary>
+		/// <param name="setting">the setting's name</param>
+		/// <param name="current">what it stays if the value can't be read</param>
+		/// <returns>the value</returns>
+		static int ReadInt(string setting, int current) {
+			int value;
+			if (int.TryParse(serializableSettings[setting], out value)) {
+				return value;
+			}
+			LogBadSetting(setting, current.ToString());
+			return current;
+		}
+
+		/// <summary>
+		/// Reads a number setting, in the same culture that ApplySettings writes it in
+		/// </summary>
+		/// <param name="setting">the setting's name</param>
+		/// <param name="current">what it stays if the value can't be read</param>
+		/// <returns>the value</returns>
+		static float ReadFloat(string setting, float current) {
+			float value;
+			if (float.TryParse(serializableSettings[setting], out value)) {
+				return value;
+			}
+			LogBadSetting(setting, current.ToString());
+			return current;
+		}
+
+		/// <summary>
+		/// Reads a colour setting from its last 6 hex digits, so that a # in front doesn't matter. Alpha is always ff
+		/// </summary>
+		/// <param name="setting">the setting's name</param>
+		/// <param name="current">what it stays if the value can't be read</param>
+		/// <returns>the colour</returns>
+		static int ReadColor(string setting, int current) {
+			string text = serializableSettings[setting];
+			int value;
+			if (text.Length >= 6 && int.TryParse(text.Substring(text.Length - 6), System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out value)) {
+				return value | unchecked((int)0xff000000);
+			}
+			LogBadSetting(setting, current.ToString("X6").Substring(2));
+			return current;
+		}
+
+		/// <summary>
+		/// Logs a setting whose value can't be used
+		/// </summary>
+		/// <param name="setting">the setting's name</param>
+		/// <param name="current">the value it stays, as the file would hold it</param>
+		static void LogBadSetting(string setting, string current) {
+			Log.Write(string.Format("Couldn't use {0}={1} in skeys9.ini, so it stays {2}", setting, serializableSettings[setting], current));
+		}
+
+		/// <summary>
+		/// Puts a font's settings back as they were before loading if no font can be made from them,
+		/// such as with a size of 0 or a style that the font doesn't have
+		/// </summary>
+		/// <param name="prefix">what the font's settings start with in the file</param>
+		/// <param name="name">the loaded name</param>
+		/// <param name="size">the loaded size</param>
+		/// <param name="style">the loaded style</param>
+		/// <param name="oldName">the name before loading</param>
+		/// <param name="oldSize">the size before loading</param>
+		/// <param name="oldStyle">the style before loading</param>
+		static void CheckFont(string prefix, ref string name, ref float size, ref int style, string oldName, float oldSize, int oldStyle) {
+			try {
+				using (new System.Drawing.Font(name, size, (System.Drawing.FontStyle)style)) { }
+			}
+			catch (ArgumentException e) {
+				Log.Write(string.Format(
+					"Couldn't make a font from {0}Name={1}, {0}Size={2} and {0}Style={3} in skeys9.ini, so they stay {4}, {5} and {6}. {7}",
+					prefix, name, size, style, oldName, oldSize, oldStyle, e.Message.Replace(Environment.NewLine, " ")
+				));
+				name = oldName;
+				size = oldSize;
+				style = oldStyle;
+			}
+		}
+
+		#endregion
 
 		/// <summary>
 		/// Apply settings in tool

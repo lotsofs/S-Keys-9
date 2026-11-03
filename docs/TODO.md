@@ -6,7 +6,6 @@ Open work, one row per item. Within each group, rows are in suggested order of w
 
 | Code | Area | Summary | Severity |
 |---|---|---|---|
-| [BST](issues.md#bst--one-bad-value-stops-the-app-from-starting-silently) | Startup | One bad value in `skeys9.ini` or one damaged line in a log makes the app vanish at startup with no window or message | Medium |
 | [WRT](issues.md#wrt--a-file-that-cant-be-written-stops-the-app-or-raises-errors) | Startup | A file that can't be written stops the app from starting (`skeys9.ini.bak`, a `.log.bak`) or makes the autosave fail with an unhandled error every minute | Medium |
 | [WDT](issues.md#wdt--keys-are-placed-with-the-wrong-width-when-hidden-or-resized) | Display | Keys pressed while in the tray each take their own row, and keys held through a resize go out of sight, until they're released | Medium |
 | [RDR](issues.md#rdr--the-display-doesnt-refresh-properly-after-settings-or-disable-display) | Display | Any settings change throws away key positions and greyed keys, so the fade can't be previewed on a real key, and turning the display back on doesn't show held keys until the next input | Low |
@@ -26,7 +25,7 @@ Open work, one row per item. Within each group, rows are in suggested order of w
 | [TMR](issues.md#tmr--hook-check-interval-is-hardcoded) | Settings | Make the 1 s hook check interval a setting | Low |
 | [NET](issues.md#net--move-off-net-framework-461) | Build | Move off .NET Framework 4.6.1, which is out of support, and declare DPI awareness so the window isn't blurry on scaled displays | Medium |
 | [RDM](issues.md#rdm--the-readme-is-two-lines) | Docs | The README is two lines, so the settings, `KeyNames.json` and the log files are undocumented for users | Medium |
-| [CLN](issues.md#cln--code-cleanups) | Code | Small cleanups: repeated colour parsing and clamping, unused references and leftovers, and style gaps in the new code | Low |
+| [CLN](issues.md#cln--code-cleanups) | Code | Small cleanups: repeated clamping, unused references and leftovers, style gaps in the new code, and missing line numbers in the Debug build's logged errors | Low |
 
 ## Feature ideas — detail in [ideas.md](ideas.md)
 

@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
@@ -14,6 +15,8 @@ namespace SKeys9 {
 		Dictionary<int, TimeSpan> _mousePos = new Dictionary<int, TimeSpan>();
 		Dictionary<int, int> _mouseInteractions = new Dictionary<int, int>();
 		readonly object _statsLock = new object(); // the mouse move thread shares everything above except _mouseInteractions
+
+		HashSet<string> _damagedLogs = new HashSet<string>(); // logs that had lines that couldn't be read, so their backups are kept
 
 		Stopwatches _stopwatches = new Stopwatches();
 		System.Windows.Forms.Timer _autosaveTimer;
@@ -361,14 +364,24 @@ namespace SKeys9 {
 		/// </summary>
 		public void BackupSave() {
 			if (Configuration.LogButtons) {
-				File.Copy(Configuration.CountPath, Path.ChangeExtension(Configuration.CountPath, ".log.bak"), true);
-				File.Copy(Configuration.DurationPath, Path.ChangeExtension(Configuration.DurationPath, ".log.bak"), true);
+				BackupLog(Configuration.CountPath);
+				BackupLog(Configuration.DurationPath);
 			}
 			if (Configuration.LogClicks) {
-				File.Copy(Configuration.InteractionPath, Path.ChangeExtension(Configuration.InteractionPath, ".log.bak"), true);
+				BackupLog(Configuration.InteractionPath);
 			}
 			if (Configuration.LogMovement) {
-				File.Copy(Configuration.MousePath, Path.ChangeExtension(Configuration.MousePath, ".log.bak"), true);
+				BackupLog(Configuration.MousePath);
+			}
+		}
+
+		/// <summary>
+		/// Copies a log to its backup, unless lines of it couldn't be read. Then the backup is the last copy that may still have them
+		/// </summary>
+		/// <param name="path">the log</param>
+		void BackupLog(string path) {
+			if (!_damagedLogs.Contains(path)) {
+				File.Copy(path, Path.ChangeExtension(path, ".log.bak"), true);
 			}
 		}
 
@@ -441,54 +454,146 @@ namespace SKeys9 {
 		/// Read saved files
 		/// </summary>
 		void LoadFiles() {
-			if (File.Exists(Configuration.CountPath)) {
-				IEnumerable<string> countTexts = File.ReadLines(Configuration.CountPath);
-				foreach (string countText in countTexts) {
-					int key = int.Parse(countText.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
-					uint count = uint.Parse(countText.Substring(3));
-					S.Dictionaries.IncrementValue(_inputsCount, key, count);
+			ReadLog(Configuration.CountPath, line => {
+				string keyText, countText;
+				int key;
+				uint count;
+				if (!SplitLogLine(line, out keyText, out countText) || !ParseKeyCode(keyText, out key) || !uint.TryParse(countText, out count)) {
+					return false;
 				}
-			}
+				S.Dictionaries.IncrementValue(_inputsCount, key, count);
+				return true;
+			});
 			for (int key = 0; key <= 0xFF; key++) {
 				if (!_inputsCount.ContainsKey(key)) {
 					S.Dictionaries.IncrementValue(_inputsCount, key, 0);
 				}
 			}
 
-			if (File.Exists(Configuration.DurationPath)) {
-				IEnumerable<string> durationTexts = File.ReadLines(Configuration.DurationPath);
-				foreach (string durationText in durationTexts) {
-					int key = int.Parse(durationText.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
-					TimeSpan duration = TimeSpan.Parse(durationText.Substring(3));
-					S.Dictionaries.IncrementValue(_inputsDuration, key, duration);
+			ReadLog(Configuration.DurationPath, line => {
+				string keyText, durationText;
+				int key;
+				TimeSpan duration;
+				if (!SplitLogLine(line, out keyText, out durationText) || !ParseKeyCode(keyText, out key) || !TimeSpan.TryParse(durationText, out duration)) {
+					return false;
 				}
-			}
+				S.Dictionaries.IncrementValue(_inputsDuration, key, duration);
+				return true;
+			});
 			for (int key = 0; key <= 0xFF; key++) {
 				if (!_inputsDuration.ContainsKey(key)) {
 					S.Dictionaries.IncrementValue(_inputsDuration, key, TimeSpan.Zero);
 				}
 			}
 
-			if (File.Exists(Configuration.MousePath)) {
-				IEnumerable<string> mouseTexts = File.ReadLines(Configuration.MousePath);
-				foreach (string mouseText in mouseTexts) {
-					int coord = int.Parse(mouseText.Substring(0, 8), System.Globalization.NumberStyles.HexNumber);
-					TimeSpan duration = TimeSpan.FromTicks(long.Parse(mouseText.Substring(9), System.Globalization.NumberStyles.HexNumber));
-					S.Dictionaries.IncrementValue(_mousePos, coord, duration);
+			ReadLog(Configuration.MousePath, line => {
+				string coordText, ticksText;
+				int coord;
+				long ticks;
+				if (!SplitLogLine(line, out coordText, out ticksText) || !ParseHex(coordText, out coord) || !long.TryParse(ticksText, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out ticks)) {
+					return false;
 				}
-			}
+				S.Dictionaries.IncrementValue(_mousePos, coord, TimeSpan.FromTicks(ticks));
+				return true;
+			});
 
-			if (File.Exists(Configuration.InteractionPath)) {
-				IEnumerable<string> mouseTexts = File.ReadLines(Configuration.InteractionPath);
-				foreach (string mouseText in mouseTexts) {
-					int coord = int.Parse(mouseText.Substring(0, 8), System.Globalization.NumberStyles.HexNumber);
-					int count = int.Parse(mouseText.Substring(9), System.Globalization.NumberStyles.HexNumber);
-					S.Dictionaries.IncrementValue(_mouseInteractions, coord, count);
+			ReadLog(Configuration.InteractionPath, line => {
+				string coordText, countText;
+				int coord;
+				int count;
+				if (!SplitLogLine(line, out coordText, out countText) || !ParseHex(coordText, out coord) || !ParseHex(countText, out count)) {
+					return false;
 				}
-			}
+				S.Dictionaries.IncrementValue(_mouseInteractions, coord, count);
+				return true;
+			});
 
 			SaveFiles();
 			BackupSave();
+		}
+
+		/// <summary>
+		/// Reads a log line by line. A line that can't be read is skipped, and the file as it was is kept with .bad added to its name,
+		/// because the save after loading replaces it with only the lines that could be read
+		/// </summary>
+		/// <param name="path">the log</param>
+		/// <param name="readLine">adds one line to the statistics, and returns whether it could</param>
+		void ReadLog(string path, Func<string, bool> readLine) {
+			if (!File.Exists(path)) {
+				return;
+			}
+			int lineNumber = 0;
+			int badLines = 0;
+			int firstBadLine = 0;
+			foreach (string line in File.ReadLines(path)) {
+				lineNumber++;
+				if (string.IsNullOrWhiteSpace(line)) {
+					continue; // holds nothing to lose
+				}
+				if (!readLine(line)) {
+					badLines++;
+					if (firstBadLine == 0) {
+						firstBadLine = lineNumber;
+					}
+				}
+			}
+			if (badLines == 0) {
+				return;
+			}
+
+			_damagedLogs.Add(path);
+			string name = Path.GetFileName(path);
+			string kept;
+			try {
+				File.Copy(path, path + ".bad", true);
+				kept = string.Format("The file as it was is kept as {0}.bad.", name);
+			}
+			catch (Exception e) when (e is IOException || e is UnauthorizedAccessException) {
+				kept = string.Format("Couldn't keep the file as it was as {0}.bad: {1}", name, e.Message);
+			}
+			Log.Write(string.Format(
+				"Skipped {0} of the lines in {1}, which couldn't be read. The first was line {2}. {3} {1}.bak wasn't replaced",
+				badLines, name, firstBadLine, kept
+			));
+		}
+
+		/// <summary>
+		/// Splits a log line into its key and its value, which a space separates
+		/// </summary>
+		/// <param name="line">the line</param>
+		/// <param name="key">the text before the first space</param>
+		/// <param name="value">the text after it</param>
+		/// <returns>whether the line has a space</returns>
+		static bool SplitLogLine(string line, out string key, out string value) {
+			int space = line.IndexOf(' ');
+			if (space < 0) {
+				key = null;
+				value = null;
+				return false;
+			}
+			key = line.Substring(0, space);
+			value = line.Substring(space + 1);
+			return true;
+		}
+
+		/// <summary>
+		/// Reads a hex number. Its bits are kept as they are, so FFFFFFFF is -1
+		/// </summary>
+		/// <param name="text">the hex digits</param>
+		/// <param name="value">the number</param>
+		/// <returns>whether it could be read</returns>
+		static bool ParseHex(string text, out int value) {
+			return int.TryParse(text, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out value);
+		}
+
+		/// <summary>
+		/// Reads a key code, 00 to FF in hex
+		/// </summary>
+		/// <param name="text">the hex digits</param>
+		/// <param name="key">the key code</param>
+		/// <returns>whether it's a key code</returns>
+		static bool ParseKeyCode(string text, out int key) {
+			return ParseHex(text, out key) && key >= 0 && key <= 0xFF;
 		}
 
 		#endregion

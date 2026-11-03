@@ -15,7 +15,21 @@ namespace SKeys9 {
 
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
-			Application.Run(new MainForm());
+			MainForm form;
+			try {
+				form = new MainForm();
+			}
+			catch (Exception e) {
+				// the form loads the settings and logs before there's a window, so nothing else would tell the user
+				Log.Write("Couldn't start: " + e);
+				MessageBox.Show(string.Format(
+					"S Keys 9 couldn't start.\n\n{0}\n\nThe details are in {1}",
+					e.Message,
+					Configuration.DebugLogPath
+				), "S Keys 9", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return;
+			}
+			Application.Run(form);
 		}
 
 		/// <summary>

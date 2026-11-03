@@ -7,23 +7,6 @@ Dependencies between these plans:
 - **DUP and ORD:** matching keys by code (DUP) makes ORD's fix cleaner, so DUP's change to `ChangeEventArgs` could come first if both are done together.
 - **LIN and LBW:** drawing the scroll line in `DisplayText_Paint` (LIN) also solves LBW, so do LIN first.
 
-## BST — One bad value stops the app from starting, silently
-
-Settings and logs are parsed with `int.Parse`, `bool.Parse` and fixed `Substring` calls, and nothing catches a failure ([Configuration.cs](../SKeys9/SKeys9/Configuration.cs), `Input.LoadFiles` in [Input.cs](../SKeys9/SKeys9/Input.cs)). Both run while `MainForm` is being constructed, so the app dies before it has a window.
-
-**Evidence:** reproduced 2026-11-02. The real exe with `Size=abc` exited within 6 s, with no window and no message. The only trace is a `Fatal error` line in `debuglog.log`. By reflection on a real form, these all throw:
-
-- In `skeys9.ini`: `Size=abc`, `Size=0`, `Size=-5`, `Style=abc`, `Color=fff`, `Color=zzzzzz`, `BackColor=`, `MinimizeToTray=1`, `LogButtons=yes`, `ClearDelay=abc`, `ClearDelay=99999999999`, `FadeOpacity=`, `FadeColor=fff`.
-- In logs: a blank line, short line, bad number or bad key code in `count.log`, a bad time in `duration.log`, and a short line in `mousemovemap.log`.
-
-`ClearDelay` and `FadeOpacity` only clamp numbers that parse.
-
-**Plan:** add `TryParse` helpers for settings that keep the default and log a line, and check the font size is above 0. In `LoadFiles`, skip a bad line and log it. Before the save that follows, copy the damaged file to `<log>.bad`, because that save and `BackupSave` would otherwise overwrite the only good data. In `Program.Main`, catch a failure during construction and show a message box that names the problem.
-
-**Verify:** each value above starts the app with the default and a line in `debuglog.log`. A damaged `count.log` loads every good line, and the original is kept as `count.log.bad`.
-
-**Docs when done:** CLAUDE.md § Persistence. Changelog entry.
-
 ## WRT — A file that can't be written stops the app or raises errors
 
 Only `File.Replace` in `Input.WriteLog` is guarded. Opening the temporary file, `BackupSave` and `SaveSettings` aren't. This hits anyone who runs S Keys from a protected folder such as Program Files, or with a read-only or locked file.
@@ -32,6 +15,8 @@ Only `File.Replace` in `Input.WriteLog` is guarded. Opening the temporary file, 
 
 - A read-only `skeys9.ini.bak` makes `ReadSettings` throw, which stops startup.
 - `count.log.bak` open in another program makes `BackupSave` throw, which also stops startup.
+
+Since 2026-11-03 a failed start shows a message box naming the problem, instead of exiting silently. A read-only `skeys9.ini.bak` or `count.log.bak` was seen to do that on the real exe, but either one still stops startup.
 - A read-only `count.log.tmp` makes `SaveFiles` throw. An autosave would hit that every 60 s, through the error dialog in `Program.OnThreadException`. That last step was only read.
 
 **Plan:** wrap the backup writes and the whole of `WriteLog` in the same `catch` that `File.Replace` has, and log the failure once, not on every attempt. Consider falling back to `%APPDATA%` when the exe's folder can't be written.
@@ -272,8 +257,7 @@ The README only says `S Keys 9` and `Input Display`. The project has real users,
 
 Small items from a read-through on 2026-11-02. None change behaviour.
 
-- `Configuration.LoadSettings` repeats the hex colour block for each colour, so make a `ParseColor` helper. It would also fix the short-string crash from BST in one place.
-- Clamping is written out with `Math.Min(Math.Max(...))` more than once. Add `S.Math.Clamp`.
+- Clamping is written out with `Math.Min(Math.Max(...))` more than once, in `Configuration.LoadSettings` and `SettingsForm`. Add `S.Math.Clamp`.
 - `Hooks.cs` and `EventArgs.cs` have an unused `using System.Windows.Input`, which is the only reason for the `WindowsBase` reference.
 - `SKeys9.csproj` has unused references and ClickOnce leftovers: `System.Deployment`, `System.Net.Http`, `System.Data`, `System.Data.DataSetExtensions`, `Microsoft.CSharp`, `System.Xml.Linq`, the publish properties and the bootstrapper packages.
 - `SettingsForm` has an unused `BackColorDialog`, and `ÁbortButton` is spelled with an accented letter.
@@ -281,7 +265,7 @@ Small items from a read-through on 2026-11-02. None change behaviour.
 - `FillKeyGapsCheckbox.Enabled` is set in the `SettingsForm` constructor as well as in the handler, which could become a shared update like `UpdateFadeControls`.
 - `HeldKeyLayout.cs` has no `#region` grouping, and the settings handlers have no `<summary>` comments, against CLAUDE.md's code style.
 - `HeldKeyLayout.Measure` could keep widths per name, cleared when the font changes. It isn't urgent, because a whole key press is about 40 µs.
-- The Debug build's portable PDB may lose file and line numbers in logged stack traces while the app targets 4.6.1, unless `App.config` sets `Switch.System.Diagnostics.IgnorePortablePDBsInStackTraces` to false. That's from memory, not tested, and NET would remove it.
+- The Debug build's logged stack traces have no file and line numbers, while the Release build's do. Seen 2026-11-03 on the same startup failure in `debuglog.log`. The portable PDB is the likely cause while the app targets 4.6.1. Setting `Switch.System.Diagnostics.IgnorePortablePDBsInStackTraces` to false in `App.config` may fix it, but that's from memory, not tested, and NET would remove the need.
 - Newtonsoft.Json is only used to read one dictionary of names. Dropping it would make the download a single exe.
 
 **Verify:** the app builds, and a full check still passes.
