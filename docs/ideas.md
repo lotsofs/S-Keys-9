@@ -156,7 +156,7 @@ For a tool that logs lifetime statistics, a day it wasn't started is a gap in th
 
 Lifetime totals can't answer "how long did I hold that jump". A recording can, and it helps speedrun analysis and comparing runs.
 
-**Plan (medium):** on request, write each press and release with a millisecond timestamp to a CSV. Use the hook's own timestamps, and write on a background thread, as in STL.
+**Plan (medium):** on request, write each press and release with a millisecond timestamp to a CSV. Use the hook's own timestamps, and write on a background thread, as the autosave does.
 
 **Verify:** a recording of known input matches it to within a few milliseconds, and a long recording doesn't stall input.
 

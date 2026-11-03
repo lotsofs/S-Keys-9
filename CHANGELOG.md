@@ -41,6 +41,8 @@ What changed for users of S Keys 9, per release. Downloads are on the [releases 
 - **Change Font** now works for fonts that Windows lists as a family and a style, such as Arial Black. The font box used to open empty, and any size you picked was ignored.
 - Keys no longer get stuck on the display when S Keys 9 stops seeing your input, such as after Ctrl+Shift+Esc opens Task Manager or Win+L locks the PC. Held keys now clear within about a second, even one you're still holding, and the next press of each one shows. `duration.log` no longer counts the time in between as holding them.
 - Turning off Button Presses logging while holding a key no longer makes that key's next logged hold time far too long.
+- With logging on, saving the statistics once a minute no longer makes all your input pause for a moment. A log is now only rewritten when something in it changed.
+- A statistics log that can't be written no longer brings up an error every minute or stops the other logs from saving. It's noted in `debuglog.log` and tried again at the next save.
 
 ## 0.8556.30292 (2023-06-05)
 

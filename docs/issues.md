@@ -9,7 +9,7 @@ Dependencies between these plans:
 
 ## WRT — A file that can't be written stops the app or raises errors
 
-Only `File.Replace` in `Input.WriteLog` is guarded. Opening the temporary file, `BackupSave` and `SaveSettings` aren't. This hits anyone who runs S Keys from a protected folder such as Program Files, or with a read-only or locked file.
+`Input.WriteLog` catches a log it can't write, logs it and leaves the data for the next save, but `BackupSave` and `SaveSettings` have no such guard. This hits anyone who runs S Keys from a protected folder such as Program Files, or with a read-only or locked file.
 
 **Evidence:** reproduced 2026-11-02 by reflection on a real form:
 
@@ -17,9 +17,10 @@ Only `File.Replace` in `Input.WriteLog` is guarded. Opening the temporary file, 
 - `count.log.bak` open in another program makes `BackupSave` throw, which also stops startup.
 
 Since 2026-11-03 a failed start shows a message box naming the problem, instead of exiting silently. A read-only `skeys9.ini.bak` or `count.log.bak` was seen to do that on the real exe, but either one still stops startup.
-- A read-only `count.log.tmp` makes `SaveFiles` throw. An autosave would hit that every 60 s, through the error dialog in `Program.OnThreadException`. That last step was only read.
+- A read-only `count.log.tmp` adds a `Couldn't update count.log` line to `debuglog.log` at each save that writes it, which is every 60 s while keys are used. The other logs still save, and there's no dialog. Reproduced 2026-11-03 by reflection on a real form.
+- A log that can't be written at a first start doesn't exist yet, so `BackupSave` should then throw when it copies it, and stop startup. That was only read.
 
-**Plan:** wrap the backup writes and the whole of `WriteLog` in the same `catch` that `File.Replace` has, and log the failure once, not on every attempt. Consider falling back to `%APPDATA%` when the exe's folder can't be written.
+**Plan:** guard the backup writes and `SaveSettings` the same way, and log each failure once, not on every attempt. Consider falling back to `%APPDATA%` when the exe's folder can't be written.
 
 **Verify:** repeat the cases above: the app starts, keeps running without error dialogs, and `debuglog.log` has one line for each.
 
@@ -95,28 +96,27 @@ Windows holds the UI thread in a wait after a press on a title bar or title bar 
 
 ## STL — Slow work on the UI thread stalls all input on the PC
 
-Low-level hooks run on the thread that installed them, which here is the UI thread. So anything slow on that thread makes every key press and mouse move on the PC wait.
+Low-level hooks run on the thread that installed them, which here is the UI thread. So anything slow on that thread makes every key press and mouse move on the PC wait. The log saves already write on a background thread. What's left are windows opening, which happens only when the user opens them.
 
-**Evidence:** reproduced 2026-11-02 with real input as 32-bit, timing `SendInput`, which waits for the hooks. The Debug build was used, and saves wrote to an SSD, so a hard drive would be slower.
+**Evidence:** reproduced 2026-11-02 with real input as 32-bit, timing `SendInput`, which waits for the hooks. The Debug build was used.
 
 | Situation | Median | Worst |
 |---|---|---|
 | S Keys hooks off | 0.16 ms | 1.2 ms |
 | Hooks on, idle | 0.22 ms | 1.3 ms |
-| A save with 20,000 click cells | 0.22 ms | 31 ms |
 | Opening the settings window | 0.22 ms | 27 ms |
 | Opening the font dialog | 0.20 ms | 243 ms |
 | A deliberate 100 ms job on the UI thread | 0.21 ms | 101 ms |
 
-Normal running adds only about 0.06 ms per event. The concern is the stall with logging on, once a minute: saves took 13 ms with 600 click cells and 36 ms with 62,000, by direct timing. With logging off, a save writes nothing.
+Normal running adds only about 0.06 ms per event.
 
-**Plan:** first, run saves on a background thread. `SaveFiles` already works from copies, except `_mouseInteractions`, which needs copying too. Allow one save at a time, and keep the exit save synchronous. Skip a save when nothing changed. Second, and only if still needed, run the hooks on their own thread with their own message loop and post events to the UI thread.
+**Plan:** only if these stalls matter, run the hooks on their own thread with their own message loop, and post events to the UI thread.
 
-That second step has to replace the repaint inside the hook callback. Windows holds the UI thread in a wait after a press on a title bar or title bar button, and `DisplayText.Update()` in `MainForm.UpdateText` is what shows keys during it, which only works while the hooks run on that thread. Instead, post a `WM_MOUSEMOVE` to the window from its `WndProc` on `WM_NCLBUTTONDOWN` with `HTCAPTION`, which ends the wait with nothing painted in the hook. Each window needs the override, and it relies on undocumented behaviour of that wait. Tried from a scratch harness on 2026-11-02: first paint at 14 to 22 ms on all three title bars and 1.8 ms for a key during a hold, and dragging and double-click to maximise still work. It doesn't help on the minimise button, which stays at about 1520 ms.
+That has to replace the repaint inside the hook callback. Windows holds the UI thread in a wait after a press on a title bar or title bar button, and `DisplayText.Update()` in `MainForm.UpdateText` is what shows keys during it, which only works while the hooks run on that thread. Instead, post a `WM_MOUSEMOVE` to the window from its `WndProc` on `WM_NCLBUTTONDOWN` with `HTCAPTION`, which ends the wait with nothing painted in the hook. Each window needs the override, and it relies on undocumented behaviour of that wait. Tried from a scratch harness on 2026-11-02: first paint at 14 to 22 ms on all three title bars and 1.8 ms for a key during a hold, and dragging and double-click to maximise still work. It doesn't help on the minimise button, which stays at about 1520 ms.
 
-**Verify:** repeat the `SendInput` timing during saves: the worst case stays near 1 ms. No data is lost across an exit save, as in MTS.
+**Verify:** repeat the `SendInput` timing while the settings window and the font dialog open: the worst case stays near the idle figure. Keys still show at once during a hold on each title bar.
 
-**Docs when done:** CLAUDE.md § Architecture and § Threading. Changelog entry.
+**Docs when done:** CLAUDE.md § Architecture (`Hooks`) and § Threading. Changelog entry.
 
 ## TMS — Restarting the key timer is the costliest part of a key press
 
@@ -172,6 +172,18 @@ The split also leaves `&` half fixed: held keys draw it, but a scroll direction 
 **Plan:** add up the delta per direction and count one scroll for each 120, carrying the remainder. This changes `count.log`'s scroll counts going forward.
 
 **Verify:** a delta of 360 counts 3, and four deltas of 30 count 1.
+
+**Docs when done:** changelog entry.
+
+## SCL — Scrolls are counted with Button Presses logging off
+
+`Input.OnMouseScroll` calls `AddToCount` without checking `Configuration.LogButtons` ([Input.cs](../SKeys9/SKeys9/Input.cs)). Every other key press or button press is counted only while it's on. With it off, the 97–9A lines in memory still count up. Turn it back on in the same session, and the next save writes those scrolls to `count.log`.
+
+**Evidence:** only read, 2026-11-03.
+
+**Plan:** check `Configuration.LogButtons` before `AddToCount` in `OnMouseScroll`, as `OnButtonDown` does. The scroll counters on the display must keep working with it off.
+
+**Verify:** with Button Presses off, scroll, then turn it on and let a save run: the 97–9A lines in `count.log` don't change. The display still shows the scroll counters.
 
 **Docs when done:** changelog entry.
 

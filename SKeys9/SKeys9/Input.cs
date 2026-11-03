@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace SKeys9 {
@@ -14,12 +15,18 @@ namespace SKeys9 {
 
 		Dictionary<int, TimeSpan> _mousePos = new Dictionary<int, TimeSpan>();
 		Dictionary<int, int> _mouseInteractions = new Dictionary<int, int>();
-		readonly object _statsLock = new object(); // the mouse move thread shares everything above except _mouseInteractions
+
+		// whether each logging group changed since it was last saved. True at first, so the save after loading writes every log
+		bool _buttonsChanged = true;
+		bool _movementChanged = true;
+		bool _clicksChanged = true;
+		readonly object _statsLock = new object(); // the mouse move thread shares everything above except _mouseInteractions, and a failed save sets the flags again
 
 		HashSet<string> _damagedLogs = new HashSet<string>(); // logs that had lines that couldn't be read, so their backups are kept
 
 		Stopwatches _stopwatches = new Stopwatches();
 		System.Windows.Forms.Timer _autosaveTimer;
+		Task _saving; // the autosave that's writing, if any. Only the UI thread touches this
 		System.Windows.Forms.Timer _scrollRemoveTimer;
 
 		int _oldMouseX;
@@ -53,6 +60,7 @@ namespace SKeys9 {
 		void AddToCount(int key) {
 			lock (_statsLock) {
 				S.Dictionaries.IncrementValue(_inputsCount, key, 1);
+				_buttonsChanged = true;
 			}
 		}
 
@@ -64,6 +72,7 @@ namespace SKeys9 {
 		void AddToDuration(int key, TimeSpan time) {
 			lock (_statsLock) {
 				S.Dictionaries.IncrementValue(_inputsDuration, key, time);
+				_buttonsChanged = true;
 			}
 		}
 
@@ -194,6 +203,9 @@ namespace SKeys9 {
 			if (Configuration.LogClicks) {
 				int coordsInt = S.Bits.CombineInt(S.Math.FloorDivide(e.X, 10), S.Math.FloorDivide(e.Y, 10));
 				S.Dictionaries.IncrementValue(_mouseInteractions, coordsInt, 1);
+				lock (_statsLock) {
+					_clicksChanged = true;
+				}
 			}
 			SetButtonAsPressed((int)e.Button, true);
 		}
@@ -300,6 +312,7 @@ namespace SKeys9 {
 			}
 
 			S.Dictionaries.IncrementValue(_inputsDuration, 0x9B, TimeSpan.FromTicks(1)); // hijacked an unassigned VK code's slot
+			_buttonsChanged = true; // count.log and duration.log hold the movement totals
 
 			// logging was off since the previous move, so the time and distance from it mean nothing
 			if (_logMovementChanges != Configuration.LogMovementChanges) {
@@ -322,6 +335,7 @@ namespace SKeys9 {
 			int restMilliseconds = System.Math.Max(0, unchecked((int)(e.Time - _oldMouseTime)));
 			int coordsInt = S.Bits.CombineInt(S.Math.FloorDivide(_oldMouseX, 100), S.Math.FloorDivide(_oldMouseY, 100));
 			S.Dictionaries.IncrementValue(_mousePos, coordsInt, TimeSpan.FromMilliseconds(restMilliseconds));
+			_movementChanged = true;
 
 			RememberMouseMove(e);
 		}
@@ -341,12 +355,22 @@ namespace SKeys9 {
 		#region log data
 
 		/// <summary>
-		/// Calls an event to write to file
+		/// Copies of the statistics for one save. A group that isn't being saved is null
+		/// </summary>
+		class LogSnapshot {
+			public Dictionary<int, uint> Count; // count and duration are saved together, like their setting
+			public Dictionary<int, TimeSpan> Duration;
+			public List<KeyValuePair<int, TimeSpan>> MousePos;
+			public List<KeyValuePair<int, int>> MouseInteractions;
+		}
+
+		/// <summary>
+		/// Saves the logs in the background
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
 		void OnAutosaveTimerTick(object sender, EventArgs e) {
-			SaveFiles();
+			SaveFilesInBackground();
 		}
 
 		/// <summary>
@@ -386,43 +410,116 @@ namespace SKeys9 {
 		}
 
 		/// <summary>
-		/// write data to file
+		/// Saves the logs on another thread, so the hooks don't wait for the disk. The statistics are copied first, on this thread.
+		/// Does nothing while the previous save is still writing. What changed since then stays marked, so the next save gets it
+		/// </summary>
+		void SaveFilesInBackground() {
+			if (_saving != null && !_saving.IsCompleted) {
+				return;
+			}
+			LogSnapshot snapshot = TakeSnapshot();
+			if (snapshot == null) {
+				return;
+			}
+			_saving = Task.Run(() => {
+				try {
+					WriteSnapshot(snapshot);
+				}
+				catch (Exception e) {
+					// nothing would report an error left in the task
+					Log.Write("Couldn't save the logs: " + e);
+					MarkUnsaved(snapshot.Count != null, snapshot.MousePos != null, snapshot.MouseInteractions != null);
+				}
+			});
+		}
+
+		/// <summary>
+		/// Saves the logs on this thread, once a save in the background is done, so the two never write the same file
 		/// </summary>
 		public void SaveFiles() {
-			Dictionary<int, uint> inputsCount;
-			Dictionary<int, TimeSpan> inputsDuration;
-			Dictionary<int, TimeSpan> mousePos;
-			lock (_statsLock) {
-				inputsCount = new Dictionary<int, uint>(_inputsCount);
-				inputsDuration = new Dictionary<int, TimeSpan>(_inputsDuration);
-				mousePos = new Dictionary<int, TimeSpan>(_mousePos);
+			_saving?.Wait();
+			LogSnapshot snapshot = TakeSnapshot();
+			if (snapshot != null) {
+				WriteSnapshot(snapshot);
 			}
+		}
 
-			if (Configuration.LogButtons) {
-				WriteLog(Configuration.CountPath, sw => {
+		/// <summary>
+		/// Copies each group of statistics that's being logged and changed since it was last saved, and marks it as saved
+		/// </summary>
+		/// <returns>the copies, or null if there's nothing to save</returns>
+		LogSnapshot TakeSnapshot() {
+			LogSnapshot snapshot = new LogSnapshot();
+			lock (_statsLock) {
+				if (Configuration.LogButtons && _buttonsChanged) {
+					snapshot.Count = new Dictionary<int, uint>(_inputsCount);
+					snapshot.Duration = new Dictionary<int, TimeSpan>(_inputsDuration);
+					_buttonsChanged = false;
+				}
+				// lists, because copying a map's entries is cheaper than building a new map from them
+				if (Configuration.LogMovement && _movementChanged) {
+					snapshot.MousePos = new List<KeyValuePair<int, TimeSpan>>(_mousePos);
+					_movementChanged = false;
+				}
+				if (Configuration.LogClicks && _clicksChanged) {
+					snapshot.MouseInteractions = new List<KeyValuePair<int, int>>(_mouseInteractions);
+					_clicksChanged = false;
+				}
+			}
+			if (snapshot.Count == null && snapshot.MousePos == null && snapshot.MouseInteractions == null) {
+				return null;
+			}
+			return snapshot;
+		}
+
+		/// <summary>
+		/// Writes the logs a snapshot holds. A group that couldn't be written is marked as changed, so the next save tries it again
+		/// </summary>
+		/// <param name="snapshot">the copies to write</param>
+		void WriteSnapshot(LogSnapshot snapshot) {
+			bool buttonsSaved = true;
+			bool movementSaved = true;
+			bool clicksSaved = true;
+			if (snapshot.Count != null) {
+				buttonsSaved = WriteLog(Configuration.CountPath, sw => {
 					for (int key = 0; key <= 0xFF; key++) {
-						sw.WriteLine(string.Format("{0:X2} {1}", key, inputsCount[key]));
+						sw.WriteLine(string.Format("{0:X2} {1}", key, snapshot.Count[key]));
 					}
 				});
-				WriteLog(Configuration.DurationPath, sw => {
+				buttonsSaved &= WriteLog(Configuration.DurationPath, sw => {
 					for (int key = 0; key <= 0xFF; key++) {
-						sw.WriteLine(string.Format("{0:X2} {1}", key, inputsDuration[key]));
+						sw.WriteLine(string.Format("{0:X2} {1}", key, snapshot.Duration[key]));
 					}
 				});
 			}
-			if (Configuration.LogMovement) {
-				WriteLog(Configuration.MousePath, sw => {
-					foreach (int i in mousePos.Keys) {
-						sw.WriteLine(string.Format("{0:X8} {1:X}", i, mousePos[i].Ticks));
+			if (snapshot.MousePos != null) {
+				movementSaved = WriteLog(Configuration.MousePath, sw => {
+					foreach (KeyValuePair<int, TimeSpan> cell in snapshot.MousePos) {
+						sw.WriteLine(string.Format("{0:X8} {1:X}", cell.Key, cell.Value.Ticks));
 					}
 				});
 			}
-			if (Configuration.LogClicks) {
-				WriteLog(Configuration.InteractionPath, sw => {
-					foreach (int i in _mouseInteractions.Keys) {
-						sw.WriteLine(string.Format("{0:X8} {1:X}", i, _mouseInteractions[i]));
+			if (snapshot.MouseInteractions != null) {
+				clicksSaved = WriteLog(Configuration.InteractionPath, sw => {
+					foreach (KeyValuePair<int, int> cell in snapshot.MouseInteractions) {
+						sw.WriteLine(string.Format("{0:X8} {1:X}", cell.Key, cell.Value));
 					}
 				});
+			}
+			MarkUnsaved(!buttonsSaved, !movementSaved, !clicksSaved);
+		}
+
+		/// <summary>
+		/// Marks groups of statistics as changed, because their save failed
+		/// </summary>
+		/// <param name="buttons">count and duration</param>
+		/// <param name="movement">the movement map</param>
+		/// <param name="clicks">the click map</param>
+		void MarkUnsaved(bool buttons, bool movement, bool clicks) {
+			lock (_statsLock) {
+				_buttonsChanged |= buttons;
+				_movementChanged |= movement;
+				_clicksChanged |= clicks;
 			}
 		}
 
@@ -431,22 +528,25 @@ namespace SKeys9 {
 		/// </summary>
 		/// <param name="path">the log</param>
 		/// <param name="write">writes the log's lines</param>
-		void WriteLog(string path, Action<StreamWriter> write) {
+		/// <returns>whether it was written. If not, the data is still in memory for the next save</returns>
+		bool WriteLog(string path, Action<StreamWriter> write) {
 			string tempPath = path + ".tmp";
-			using (StreamWriter sw = new StreamWriter(tempPath)) {
-				write(sw);
-			}
-
-			if (!File.Exists(path)) {
-				File.Move(tempPath, path);
-				return;
-			}
 			try {
-				File.Replace(tempPath, path, null);
+				using (StreamWriter sw = new StreamWriter(tempPath)) {
+					write(sw);
+				}
+				if (!File.Exists(path)) {
+					File.Move(tempPath, path);
+				}
+				else {
+					File.Replace(tempPath, path, null);
+				}
+				return true;
 			}
 			catch (Exception e) when (e is IOException || e is UnauthorizedAccessException) {
-				// something has the log open. The data is still in memory, so the next save tries again
+				// such as something having the log open, or a read-only file
 				Log.Write("Couldn't update " + Path.GetFileName(path) + ": " + e.Message);
+				return false;
 			}
 		}
 
