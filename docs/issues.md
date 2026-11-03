@@ -6,23 +6,6 @@ Dependencies between these plans:
 
 - **DUP and ORD:** matching keys by code (DUP) makes ORD's fix cleaner, so DUP's change to `ChangeEventArgs` could come first if both are done together.
 - **LIN and LBW:** drawing the scroll line in `DisplayText_Paint` (LIN) also solves LBW, so do LIN first.
-- **STK and TMR:** STK's repair runs in the hook check, so the longer interval TMR allows would also delay clearing a stuck key.
-
-## STK — A lost key-up leaves a key stuck
-
-Windows keeps input from the hooks on the lock screen and while an elevated window has focus. A key that was down when that started never gets its key-up. Examples are the Win key in Win+L, or Alt when Alt+Tab lands on an admin window.
-
-- The key stays on the display, indefinitely.
-- `Hooks._currentlyPressed` still holds it, so its next press is dropped as auto-repeat. Only the release of that next press clears it ([Hooks.cs](../SKeys9/SKeys9/Hooks.cs)).
-- With `LogButtons` on, its stopwatch keeps running, so `duration.log` gets the whole time. A later press doesn't restart it, because `Stopwatches.KeyPressStart` skips a key that has one running ([Stopwatches.cs](../SKeys9/SKeys9/Stopwatches.cs)).
-
-**Evidence:** reproduced 2026-11-02 with real key input, as 32-bit and 64-bit, losing the key-up by removing the hooks for a moment. 2.5 s after the release the key still showed, and pressing it again raised no event. The stopwatch was reproduced the same day by turning `LogButtons` off during a hold, which leaves the same state: a 50 ms hold then logged 1,563 ms. The real triggers, a lock and an admin window, were only read.
-
-**Plan:** in `Hooks.OnHookCheck`, while input is in reach, check each code in `_currentlyPressed` with `GetAsyncKeyState`. For any that's up, remove it and raise `OnKeyUp` or `OnMouseUp`. Skip this while input is out of reach, because the state can't be trusted then. Also stop counting a key's duration at that point rather than at its next release.
-
-**Verify:** hold Alt, Alt+Tab to an elevated window, release, and go back: the key clears within a second, and its next press shows. Do the same with Win+L and unlock. `duration.log` doesn't gain the locked time.
-
-**Docs when done:** CLAUDE.md § Architecture (`Hooks`). Changelog entry.
 
 ## BST — One bad value stops the app from starting, silently
 
@@ -229,9 +212,21 @@ The Key Display group is at the bottom of the settings window, below Counter Dis
 
 **Docs when done:** none while Key Display is unreleased.
 
+## BLK — A key another program's hook blocks makes S Keys reinstall its hooks
+
+Remappers such as PowerToys Keyboard Manager and AutoHotkey block the original key in their own low-level hook. When such a hook runs before S Keys' hook, S Keys never sees the key, but `GetLastInputInfo` still counts it as input. The hook check then finds input that neither hook saw, reinstalls the hooks, writes a reinstall line to `debuglog.log` and, with `LogButtons` on, counts the reinstall on the `9D` line. The reinstall makes S Keys' hook the newest, so it runs first and sees the blocked key from then on. This should therefore happen once each time S Keys ends up behind such a hook.
+
+**Evidence:** seen 2026-11-03. A test harness ran a hook that blocked an injected 0x3A ahead of a running S Keys, and that S Keys logged one reinstall in each of the two runs, at the time of each run. Whether a real remapper does the same, and whether the reinstalls repeat when it hooks again, was only read.
+
+**Plan:** remap one key in PowerToys Keyboard Manager, start it after S Keys, and count reinstall lines over a few minutes of use. If each start of the remapper causes just one, describe that in CLAUDE.md as a harmless cause and close this. If they keep coming, look for a way to tell a blocked key from a lost hook before reinstalling.
+
+**Verify:** with the remapper running, `debuglog.log` gets no more than one reinstall line each time the remapper starts.
+
+**Docs when done:** CLAUDE.md § Architecture (`Hooks`, the note on harmless reinstall lines).
+
 ## TMR — Hook check interval is hardcoded
 
-The hook check interval is 1000 ms in the `Hooks` constructor ([Hooks.cs](../SKeys9/SKeys9/Hooks.cs)). It should be a setting.
+The hook check interval is 1000 ms in the `Hooks` constructor ([Hooks.cs](../SKeys9/SKeys9/Hooks.cs)). It should be a setting. The same check releases keys whose release the hooks missed, so a longer interval would also leave those on the display longer.
 
 **Plan:** add a static field in `Configuration`, a `case` in `LoadSettings` that clamps the value as `ClearDelay` does, and a line in `ApplySettings`. Set the timer interval from this field. `Hooks` is created after `ReadSettings`, so startup already works, but a change made in the settings window must also update the running timer. Open decision: offer a control in `SettingsForm`, or only a `skeys9.ini` key.
 

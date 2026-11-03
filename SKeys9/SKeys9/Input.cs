@@ -170,8 +170,9 @@ namespace SKeys9 {
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
 		internal void OnButtonUp(object sender, KeyEventArgs e) {
+			// stopped with logging off too, or a press while logging is back on would time from this one
+			TimeSpan time = _stopwatches.KeyPressStop(e.Key, e.LateBy);
 			if (Configuration.LogButtons) {
-				TimeSpan time = _stopwatches.KeyPressStop(e.Key);
 				AddToDuration(e.Key, time);
 			}
 			SetButtonAsPressed(e.Key, false);
@@ -200,8 +201,9 @@ namespace SKeys9 {
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
 		internal void OnMouseUp(object sender, MouseEventArgs e) {
+			// stopped with logging off too, or a press while logging is back on would time from this one
+			TimeSpan time = _stopwatches.KeyPressStop((int)e.Button, e.LateBy);
 			if (Configuration.LogButtons) {
-				TimeSpan time = _stopwatches.KeyPressStop((int)e.Button);
 				AddToDuration((int)e.Button, time);
 			}
 			//if (Configuration.LogClicks) {

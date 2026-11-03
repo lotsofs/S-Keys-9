@@ -10,7 +10,7 @@ What changed for users of S Keys 9, per release. Downloads are on the [releases 
 
 ### Added
 
-- `debuglog.log` next to `SKeys9.exe` records errors, when S Keys 9 had to reconnect to Windows, and when it couldn't see your input, such as on the lock screen or while a program running as administrator has focus, with the time. It only appears once there's something to record.
+- `debuglog.log` next to `SKeys9.exe` records errors, when S Keys 9 had to reconnect to Windows, when it couldn't see your input, such as on the lock screen or while a program running as administrator has focus, and keys it cleared because it couldn't see you let go of them, with the time. It only appears once there's something to record.
 - Keys you let go of stay on the display in grey for a moment before they disappear, so a quick tap is easier to see.
 - Key Display settings. Turn off **Keep Keys In Place** to have keys slide left when you release one, as they used to. Turn off **New Keys Fill Gaps** to always add a new key after the last one, so keys stay in the order you pressed them. Turn off **Grey Out Released Keys** to have keys disappear as soon as you let go.
 - **Clear Delay** in Key Display sets how long released keys and scroll counters stay, in milliseconds. It starts at 300, which is how long scroll counters have always stayed.
@@ -38,6 +38,8 @@ What changed for users of S Keys 9, per release. Downloads are on the [releases 
 - A scroll direction you renamed in `KeyNames.json` now clears from the display like the others, instead of counting up forever.
 - Keys now show at once while you hold the mouse on the title bar or a title bar button of an S Keys 9 window, instead of half a second later or only after you let go.
 - **Change Font** now works for fonts that Windows lists as a family and a style, such as Arial Black. The font box used to open empty, and any size you picked was ignored.
+- Keys no longer get stuck on the display when S Keys 9 stops seeing your input, such as after Ctrl+Shift+Esc opens Task Manager or Win+L locks the PC. Held keys now clear within about a second, even one you're still holding, and the next press of each one shows. `duration.log` no longer counts the time in between as holding them.
+- Turning off Button Presses logging while holding a key no longer makes that key's next logged hold time far too long.
 
 ## 0.8556.30292 (2023-06-05)
 

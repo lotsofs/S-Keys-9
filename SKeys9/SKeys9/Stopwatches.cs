@@ -23,12 +23,14 @@ namespace SKeys9 {
 		/// stops a stopwatch that tracks the duration of a keypress
 		/// </summary>
 		/// <param name="key">the key the stopwatch is for</param>
-		internal TimeSpan KeyPressStop(int key) {
+		/// <param name="lateBy">how long ago the key was last known to be down, for a release no hook saw</param>
+		/// <returns>how long the key was held, up to when it was last known to be down</returns>
+		internal TimeSpan KeyPressStop(int key, TimeSpan lateBy) {
 			if (_inputsStopwatches.ContainsKey(key)) {
 				_inputsStopwatches[key].Stop();
 				TimeSpan ts = _inputsStopwatches[key].Elapsed;
 				_inputsStopwatches.Remove(key);
-				return ts;
+				return ts > lateBy ? ts - lateBy : TimeSpan.Zero;
 			}
 			return TimeSpan.Zero;
 		}

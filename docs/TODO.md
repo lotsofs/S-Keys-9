@@ -6,7 +6,6 @@ Open work, one row per item. Within each group, rows are in suggested order of w
 
 | Code | Area | Summary | Severity |
 |---|---|---|---|
-| [STK](issues.md#stk--a-lost-key-up-leaves-a-key-stuck) | Input | When a key-up never arrives, such as after an admin window takes focus or the PC locks, the key stays on the display, its next press is ignored, and `duration.log` gets inflated | Medium |
 | [BST](issues.md#bst--one-bad-value-stops-the-app-from-starting-silently) | Startup | One bad value in `skeys9.ini` or one damaged line in a log makes the app vanish at startup with no window or message | Medium |
 | [WRT](issues.md#wrt--a-file-that-cant-be-written-stops-the-app-or-raises-errors) | Startup | A file that can't be written stops the app from starting (`skeys9.ini.bak`, a `.log.bak`) or makes the autosave fail with an unhandled error every minute | Medium |
 | [WDT](issues.md#wdt--keys-are-placed-with-the-wrong-width-when-hidden-or-resized) | Display | Keys pressed while in the tray each take their own row, and keys held through a resize go out of sight, until they're released | Medium |
@@ -23,6 +22,7 @@ Open work, one row per item. Within each group, rows are in suggested order of w
 | [DUP](issues.md#dup--keys-with-the-same-name-swap-slots) | Display | When two held keys share a name, the wrong slot greys out, because keys are matched by name instead of by key code | Low |
 | [WHL](issues.md#whl--wheel-events-are-counted-instead-of-wheel-notches) | Input | One wheel event counts as one scroll whatever its size, so fast mice under-count and smooth-scrolling mice would over-count | Low |
 | [CNR](issues.md#cnr--settings-cancel-and-close-do-not-always-revert) | Settings | Cancel doesn't revert previewed settings that `skeys9.ini` doesn't hold, and closing the settings window with X never reverts them | Low |
+| [BLK](issues.md#blk--a-key-another-programs-hook-blocks-makes-s-keys-reinstall-its-hooks) | Input | A key that another program's hook blocks before S Keys sees it, as remappers do, counts as input neither hook saw, so S Keys reinstalls its hooks and logs it | Low |
 | [TMR](issues.md#tmr--hook-check-interval-is-hardcoded) | Settings | Make the 1 s hook check interval a setting | Low |
 | [NET](issues.md#net--move-off-net-framework-461) | Build | Move off .NET Framework 4.6.1, which is out of support, and declare DPI awareness so the window isn't blurry on scaled displays | Medium |
 | [RDM](issues.md#rdm--the-readme-is-two-lines) | Docs | The README is two lines, so the settings, `KeyNames.json` and the log files are undocumented for users | Medium |

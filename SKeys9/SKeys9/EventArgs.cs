@@ -15,8 +15,16 @@ namespace SKeys9 {
 			get; private set;
 		}
 
-		public KeyEventArgs(int key) {
+		/// <summary>
+		/// For a release no hook saw, how long since the key was last known to be down. Zero otherwise
+		/// </summary>
+		public TimeSpan LateBy {
+			get; private set;
+		}
+
+		public KeyEventArgs(int key, TimeSpan lateBy = default(TimeSpan)) {
 			Key = key;
+			LateBy = lateBy;
 		}
 	}
 
@@ -91,10 +99,18 @@ namespace SKeys9 {
 			get; private set;
 		}
 
-		public MouseEventArgs(Buttons button, int x, int y) {
+		/// <summary>
+		/// For a release no hook saw, how long since the button was last known to be down. Zero otherwise
+		/// </summary>
+		public TimeSpan LateBy {
+			get; private set;
+		}
+
+		public MouseEventArgs(Buttons button, int x, int y, TimeSpan lateBy = default(TimeSpan)) {
 			Button = button;
 			X = x;
 			Y = y;
+			LateBy = lateBy;
 		}
 	}
 
